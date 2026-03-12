@@ -209,6 +209,10 @@ export default function MenuApp() {
   const [error, setError] = useState("");
   const [showVariantModal, setShowVariantModal] = useState(false);
   const [selectedItemForVariant, setSelectedItemForVariant] = useState(null);
+  
+  // PWA Install functionality
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
   const deferredSearch = useDeferredValue(searchQuery.trim().toLowerCase());
 
   useEffect(() => {
@@ -244,6 +248,33 @@ export default function MenuApp() {
 
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  // PWA Install prompt handling
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallButton(true);
+    };
+
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+      setShowInstallButton(false);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    // Check if app is already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setShowInstallButton(false);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
@@ -379,6 +410,21 @@ export default function MenuApp() {
     });
   }, []);
 
+  // PWA Install function
+  const handleInstallApp = useCallback(async () => {
+    if (!deferredPrompt) return;
+    
+    try {
+      const result = await deferredPrompt.prompt();
+      if (result.outcome === 'accepted') {
+        setDeferredPrompt(null);
+        setShowInstallButton(false);
+      }
+    } catch (error) {
+      console.error('Error installing app:', error);
+    }
+  }, [deferredPrompt]);
+
   const handleHomeDelivery = useCallback(() => {
     const number = menu?.restaurant?.phone || "6202525132";
     let message = `*${menu?.restaurant?.name || "Dubey's Dhaba"} Order*%0A%0A`;
@@ -433,6 +479,16 @@ export default function MenuApp() {
                 >
                   {viewMode === "list" ? <LayoutGrid size={14} /> : <List size={14} />}
                 </button>
+                {showInstallButton && (
+                  <button
+                    onClick={handleInstallApp}
+                    className="flex items-center gap-1.5 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 px-3 py-2 transition-all hover:border-amber-500 hover:bg-amber-500/20"
+                    title="Add to Home Screen"
+                  >
+                    <Plus size={14} />
+                    <span className="text-[10px] font-bold hidden sm:inline">Install</span>
+                  </button>
+                )}
               </div>
             </div>
 
