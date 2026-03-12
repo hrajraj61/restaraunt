@@ -96,11 +96,11 @@ function DishCard({
               <h3 className="font-body text-lg font-bold text-white mb-1">{dish.name}</h3>
               <p className="font-body text-xs text-white/70 leading-tight mb-2 line-clamp-2">{dish.desc}</p>
               <div className="flex items-center justify-between">
-                <span className="font-body text-sm font-bold text-white">₹{dish.price}</span>
+                <span className="font-body text-sm font-bold text-white">{dish.hasVariants ? dish.displayPrice : `₹${dish.price}`}</span>
                 {cartQty > 0 ? (
                   <div className="flex items-center gap-1 bg-white/20 rounded-full p-1">
                     <button
-                      onClick={() => onRemove(dish.id)}
+                      onClick={() => onRemove(dish)}
                       className="rounded-full bg-white/20 p-1 hover:bg-white/30"
                     >
                       {cartQty > 1 ? <Minus size={10} /> : <X size={10} />}
@@ -152,7 +152,7 @@ function DishCard({
               <p className="font-body text-xs text-white/60 leading-tight mb-2 line-clamp-1">{dish.desc}</p>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="font-body text-sm font-bold text-white">₹{dish.price}</span>
+                  <span className="font-body text-sm font-bold text-white">{dish.hasVariants ? dish.displayPrice : `₹${dish.price}`}</span>
                   <div className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase ${
                     dish.type === "veg"
                       ? "bg-green-500/20 text-green-300"
@@ -164,7 +164,7 @@ function DishCard({
                 {cartQty > 0 ? (
                   <div className="flex items-center gap-1 bg-white/20 rounded-full p-0.5">
                     <button
-                      onClick={() => onRemove(dish.id)}
+                      onClick={() => onRemove(dish)}
                       className="rounded-full bg-white/20 p-1 hover:bg-white/30"
                     >
                       {cartQty > 1 ? <Minus size={8} /> : <X size={8} />}
@@ -207,6 +207,8 @@ export default function MenuApp() {
   const [viewMode, setViewMode] = useState("list");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showVariantModal, setShowVariantModal] = useState(false);
+  const [selectedItemForVariant, setSelectedItemForVariant] = useState(null);
   const deferredSearch = useDeferredValue(searchQuery.trim().toLowerCase());
 
   useEffect(() => {
@@ -254,10 +256,13 @@ export default function MenuApp() {
           ...item,
           categoryId: category.id,
           categoryName: category.name,
-          // Transform for older theme compatibility
           desc: item.description,
-          price: item.pricing.kind === "fixed" ? item.pricing.price : item.displayPrice,
-          img: item.image
+          price: item.pricing.kind === "fixed" ? item.pricing.price : item.pricing.variants?.[0]?.price || 0,
+          img: item.image || category.categoryImage,
+          hasVariants: item.pricing.kind === "variant",
+          displayPrice: item.pricing.kind === "variant" 
+            ? `₹${item.pricing.variants[0].price} - ₹${item.pricing.variants[item.pricing.variants.length - 1].price}`
+            : `₹${item.pricing.price}`
         }))
       ),
     [categories]
@@ -277,14 +282,72 @@ export default function MenuApp() {
     });
   }, [searchQuery, activeCat, dietFilter, allItems]);
 
-  const selectedDishes = useMemo(() => allItems.filter((dish) => Boolean(cart[dish.id])), [cart, allItems]);
+  const selectedDishes = useMemo(() => {
+    const result = [];
+    
+    Object.keys(cart).forEach(cartItemId => {
+      // Check if it's a variant ID
+      const variantItem = categories.flatMap(cat => 
+        cat.items.filter(item => item.pricing.kind === "variant")
+          .flatMap(item => item.pricing.variants.map(variant => ({
+            ...item,
+            id: variant.id,
+            variantId: variant.id,
+            baseItemId: item.id,
+            name: item.name,
+            variant: variant,
+            categoryId: cat.id,
+            categoryName: cat.name,
+            desc: item.description,
+            price: variant.price,
+            img: item.image || cat.categoryImage,
+            hasVariants: true,
+            baseItem: item
+          })))
+      ).find(item => item.id === cartItemId);
+      
+      if (variantItem) {
+        result.push(variantItem);
+      } else {
+        // Regular item
+        const regularItem = allItems.find(item => item.id === cartItemId);
+        if (regularItem) {
+          result.push(regularItem);
+        }
+      }
+    });
+    
+    return result;
+  }, [cart, allItems, categories]);
   const totalCartItems = Object.values(cart).reduce((a, b) => a + b, 0);
   const totalCartPrice = selectedDishes.reduce((sum, dish) => sum + dish.price * (cart[dish.id] || 0), 0);
   const highlightedDishes = useMemo(() => allItems.filter((dish) => highlights.includes(dish.id)), [highlights, allItems]);
 
   const addToCart = useCallback((id) => {
-    setCart((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
+    const item = allItems.find(item => item.id === id);
+    if (item && item.hasVariants) {
+      // For variant items, show variant selection modal
+      setSelectedItemForVariant(item);
+      setShowVariantModal(true);
+    } else {
+      // For fixed price items, add directly
+      setCart((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
+    }
+  }, [allItems]);
+
+  const addVariantToCart = useCallback((variantId) => {
+    setCart((prev) => ({ ...prev, [variantId]: (prev[variantId] || 0) + 1 }));
+    setShowVariantModal(false);
+    setSelectedItemForVariant(null);
   }, []);
+
+  // Helper function to get total cart quantity for a dish (including variants)
+  const getDishCartQty = useCallback((dish) => {
+    if (dish.hasVariants && dish.variants) {
+      return dish.variants.reduce((total, variant) => total + (cart[variant.id] || 0), 0);
+    }
+    return cart[dish.id] || 0;
+  }, [cart]);
 
   const removeFromCart = useCallback((id) => {
     setCart((prev) => {
@@ -294,6 +357,19 @@ export default function MenuApp() {
       return updated;
     });
   }, []);
+
+  // Helper function to handle remove for dishes with variants
+  const handleRemoveFromCart = useCallback((dish) => {
+    if (dish.hasVariants && dish.variants) {
+      // Find the variant with items in cart and remove from it
+      const variantInCart = dish.variants.find(variant => cart[variant.id] > 0);
+      if (variantInCart) {
+        removeFromCart(variantInCart.id);
+      }
+    } else {
+      removeFromCart(dish.id);
+    }
+  }, [cart, removeFromCart]);
 
   const toggleHighlight = useCallback((id) => {
     setHighlights((prev) => {
@@ -429,9 +505,9 @@ export default function MenuApp() {
                       key={dish.id}
                       dish={dish}
                       mode={viewMode}
-                      cartQty={cart[dish.id] || 0}
+                      cartQty={getDishCartQty(dish)}
                       onAdd={addToCart}
-                      onRemove={removeFromCart}
+                      onRemove={handleRemoveFromCart}
                       isHighlighted={highlights.includes(dish.id)}
                       onToggleHighlight={toggleHighlight}
                     />
@@ -535,7 +611,14 @@ export default function MenuApp() {
                           <div key={dish.id} className="flex items-center gap-2 rounded-lg border border-black/5 bg-neutral-50 px-2.5 py-2">
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2">
-                                <span className="truncate font-body text-sm font-semibold text-black">{dish.name}</span>
+                                <div className="min-w-0 flex-1">
+                                  <span className="truncate font-body text-sm font-semibold text-black">{dish.name}</span>
+                                  {dish.hasVariants && dish.variant && (
+                                    <div className="flex items-center gap-1 mt-0.5">
+                                      <span className="font-body text-xs text-black/60">{dish.variant.label}</span>
+                                    </div>
+                                  )}
+                                </div>
                                 <span className="font-body whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.14em] text-black/45">
                                   x {cart[dish.id]}
                                 </span>
@@ -550,7 +633,7 @@ export default function MenuApp() {
                                 {cart[dish.id] > 1 ? <Minus size={10} /> : <X size={10} />}
                               </button>
                               <button
-                                onClick={() => addToCart(dish.id)}
+                                onClick={() => dish.hasVariants ? (setSelectedItemForVariant(dish), setShowVariantModal(true)) : addToCart(dish.id)}
                                 className="flex h-6 w-6 items-center justify-center rounded-full bg-black text-white hover:bg-black/90"
                               >
                                 <Plus size={10} />
@@ -582,6 +665,58 @@ export default function MenuApp() {
                           Delivery
                         </button>
                       </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            ) : null}
+          </AnimatePresence>
+
+          {/* Variant Selection Modal */}
+          <AnimatePresence>
+            {showVariantModal && selectedItemForVariant ? (
+              <div className="absolute inset-0 z-[160] flex items-end justify-center p-3 sm:p-4 lg:items-center lg:p-8">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setShowVariantModal(false)}
+                  className="absolute inset-0 bg-black/70 backdrop-blur-md"
+                />
+                <motion.div
+                  initial={{ y: 40, opacity: 0, scale: 0.96 }}
+                  animate={{ y: 0, opacity: 1, scale: 1 }}
+                  exit={{ y: 40, opacity: 0, scale: 0.96 }}
+                  className="relative flex w-full max-w-md flex-col overflow-hidden rounded-xl border border-white/10 bg-white text-black shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
+                >
+                  <div className="flex items-center justify-between border-b border-black/5 bg-neutral-50 p-4">
+                    <button 
+                      onClick={() => setShowVariantModal(false)} 
+                      className="flex items-center gap-2 font-body text-xs font-bold uppercase tracking-[0.2em] text-black/70"
+                    >
+                      <X size={14} /> Close
+                    </button>
+                    <div className="text-right">
+                      <h2 className="font-display text-lg text-black">Select Size</h2>
+                      <p className="font-body text-xs text-black/60">{selectedItemForVariant.name}</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4">
+                    <div className="space-y-3">
+                      {selectedItemForVariant.pricing.variants.map((variant) => (
+                        <button
+                          key={variant.id}
+                          onClick={() => addVariantToCart(variant.id)}
+                          className="w-full flex items-center justify-between rounded-lg border border-black/10 bg-white p-3 text-left hover:bg-neutral-50 transition-colors"
+                        >
+                          <div>
+                            <div className="font-body text-sm font-semibold text-black">{variant.label}</div>
+                            <div className="font-body text-xs text-black/60">{variant.size} ({variant.inches}")</div>
+                          </div>
+                          <div className="font-body text-sm font-bold text-black">₹{variant.price}</div>
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </motion.div>
