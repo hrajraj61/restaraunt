@@ -209,6 +209,10 @@ export default function MenuApp() {
   const [error, setError] = useState("");
   const [showVariantModal, setShowVariantModal] = useState(false);
   const [selectedItemForVariant, setSelectedItemForVariant] = useState(null);
+  const [includeDeliveryLocation, setIncludeDeliveryLocation] = useState(false);
+  const [showDeliveryConfirmModal, setShowDeliveryConfirmModal] = useState(false);
+  const [deliveryLocation, setDeliveryLocation] = useState(null);
+  const [isFetchingDeliveryLocation, setIsFetchingDeliveryLocation] = useState(false);
   
   // PWA Install functionality
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -428,13 +432,78 @@ export default function MenuApp() {
   const handleHomeDelivery = useCallback(() => {
     const number = menu?.restaurant?.phone || "6202525132";
     let message = `*${menu?.restaurant?.name || "Dubey's Dhaba"} Order*%0A%0A`;
+
     selectedDishes.forEach((dish) => {
       message += `- ${dish.name} (x${cart[dish.id]}) - Rs. ${dish.price * cart[dish.id]}%0A`;
     });
+
     message += `%0A*TOTAL ITEMS:* ${totalCartItems}`;
     message += "%0A%0A*REQUEST:* I'd like to get this delivered to my home. Please confirm.";
-    window.open(`https://wa.me/91${number}?text=${message}`, "_blank", "noopener,noreferrer");
-  }, [cart, selectedDishes, totalCartItems, menu]);
+
+    const openWhatsApp = (finalMessage) => {
+      setShowDeliveryConfirmModal(false);
+      window.open(`https://wa.me/91${number}?text=${finalMessage}`, "_blank", "noopener,noreferrer");
+    };
+
+    if (!includeDeliveryLocation) {
+      openWhatsApp(message);
+      return;
+    }
+
+    if (!deliveryLocation) {
+      window.alert("Current location is not ready yet. Sending the order without location.");
+      openWhatsApp(message);
+      return;
+    }
+
+    const locationMessage = `${message}%0A%0A*DELIVERY LOCATION:* https://maps.google.com/?q=${deliveryLocation.latitude},${deliveryLocation.longitude}`;
+    openWhatsApp(locationMessage);
+  }, [cart, deliveryLocation, includeDeliveryLocation, selectedDishes, totalCartItems, menu]);
+
+  const toggleDeliveryLocation = useCallback(() => {
+    if (includeDeliveryLocation) {
+      setIncludeDeliveryLocation(false);
+      setDeliveryLocation(null);
+      setIsFetchingDeliveryLocation(false);
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      window.alert("Location access is not supported on this device.");
+      setIncludeDeliveryLocation(false);
+      setDeliveryLocation(null);
+      return;
+    }
+
+    setIncludeDeliveryLocation(true);
+    setIsFetchingDeliveryLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setDeliveryLocation({ latitude, longitude });
+        setIsFetchingDeliveryLocation(false);
+      },
+      () => {
+        window.alert("Couldn't get your current location.");
+        setIncludeDeliveryLocation(false);
+        setDeliveryLocation(null);
+        setIsFetchingDeliveryLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  }, [includeDeliveryLocation]);
+
+  const closeDeliveryConfirmModal = useCallback(() => {
+    setShowDeliveryConfirmModal(false);
+    setIncludeDeliveryLocation(false);
+    setDeliveryLocation(null);
+    setIsFetchingDeliveryLocation(false);
+  }, []);
 
   const heroImage = filteredDishes[0]?.img || allItems[0]?.img || "";
 
@@ -458,12 +527,19 @@ export default function MenuApp() {
 
           <header className="relative z-50 border-b border-white/10 p-3">
             <div className="flex items-center justify-between">
-              <div className="flex flex-col">
+              <div className="flex items-center gap-3">
+                <img
+                  src="/logo.png"
+                  alt="Dubey's Dhaba logo"
+                  className="h-16 w-16 rounded-2xl border border-white/10 bg-white/5 object-contain p-2 shadow-lg"
+                />
+                <div className="flex flex-col">
                 <Link href="/" className="mb-1 inline-flex items-center gap-1 font-body text-[10px] uppercase text-white/50">
                   <ArrowLeft size={12} /> Home
                 </Link>
                 <h1 className="font-display text-2xl font-bold text-amber-500">{menu?.restaurant?.name || "Dubey's Dhaba"}</h1>
                 <p className="font-body text-xs text-white/50">{menu?.restaurant?.address || "Hotel Bajrang, Mako, Latehar"}</p>
+                </div>
               </div>
               <div className="flex gap-2 self-start">
                 <button
@@ -581,6 +657,19 @@ export default function MenuApp() {
               <ChevronRight className="rotate-90" size={10} />
               <span className="font-body text-xs uppercase">End of Menu</span>
             </div>
+            <a
+              href="https://cloudivion.com"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-center gap-2 pb-4 text-[10px] uppercase tracking-[0.18em] text-white/35 transition hover:text-white/55"
+            >
+              <img
+                src="https://www.cloudivion.com/images/cloudivion-logo.png"
+                alt="Cloudivion logo"
+                className="h-4 w-4 rounded-sm object-contain"
+              />
+              <span>Powered by Cloudivion.com</span>
+            </a>
           </main>
 
           <AnimatePresence>
@@ -714,13 +803,98 @@ export default function MenuApp() {
                           Dine In
                         </button>
                         <button
-                          onClick={handleHomeDelivery}
+                          onClick={() => {
+                            setShowDeliveryConfirmModal(true);
+                          }}
                           className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-black px-4 py-2.5 font-body text-xs font-bold uppercase tracking-[0.18em] text-white transition-colors hover:bg-black/90"
                         >
                           <ShoppingBag size={12} />
                           Delivery
                         </button>
                       </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            ) : null}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {showDeliveryConfirmModal ? (
+              <div className="absolute inset-0 z-[170] flex items-end justify-center p-3 sm:p-4 lg:items-center lg:p-8">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={closeDeliveryConfirmModal}
+                  className="absolute inset-0 bg-black/70 backdrop-blur-md"
+                />
+                <motion.div
+                  initial={{ y: 40, opacity: 0, scale: 0.96 }}
+                  animate={{ y: 0, opacity: 1, scale: 1 }}
+                  exit={{ y: 40, opacity: 0, scale: 0.96 }}
+                  className="relative flex w-full max-w-md flex-col overflow-hidden rounded-xl border border-white/10 bg-white text-black shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
+                >
+                  <div className="flex items-center justify-between border-b border-black/5 bg-neutral-50 p-4">
+                    <div>
+                      <h2 className="font-display text-lg text-black">Confirm Delivery</h2>
+                      <p className="font-body text-xs text-black/60">Review before sending the WhatsApp order.</p>
+                    </div>
+                    <button
+                      onClick={closeDeliveryConfirmModal}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-black/70 hover:bg-black/10"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 p-4">
+                    <div className="rounded-lg bg-neutral-50 px-3 py-2.5">
+                      <p className="font-body text-[10px] font-bold uppercase tracking-[0.18em] text-black/45">Order Total</p>
+                      <p className="mt-1 font-body text-sm font-semibold text-black">{totalCartItems} items • ₹{totalCartPrice}</p>
+                    </div>
+
+                    <label className="flex items-center justify-between rounded-lg border border-black/10 bg-white px-3 py-3 text-black">
+                      <div>
+                        <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-black/80">
+                          Use Current Location
+                        </p>
+                        <p className="font-body text-[11px] text-black/50">
+                          {isFetchingDeliveryLocation
+                            ? "Getting your current location..."
+                            : "Add your live delivery location to the WhatsApp order."}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={includeDeliveryLocation}
+                        onClick={toggleDeliveryLocation}
+                        className={`relative h-7 w-12 rounded-full transition-colors ${
+                          includeDeliveryLocation ? "bg-amber-500" : "bg-black/15"
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+                            includeDeliveryLocation ? "translate-x-6" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                    </label>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={closeDeliveryConfirmModal}
+                        className="flex-1 rounded-lg border border-black/10 px-4 py-2.5 font-body text-xs font-bold uppercase tracking-[0.18em] text-black/70 transition-colors hover:bg-black/5"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleHomeDelivery}
+                        className="flex-1 rounded-lg bg-black px-4 py-2.5 font-body text-xs font-bold uppercase tracking-[0.18em] text-white transition-colors hover:bg-black/90"
+                      >
+                        Confirm
+                      </button>
                     </div>
                   </div>
                 </motion.div>

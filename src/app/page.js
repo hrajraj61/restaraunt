@@ -10,12 +10,21 @@ export default function HomePage() {
         <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-16 sm:px-10 lg:px-12">
           <div className="grid items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="max-w-2xl">
-              <p className="mb-4 text-xs font-semibold uppercase tracking-[0.45em] text-amber-400">
-                Hotel Bajrang, Mako, Latehar
-              </p>
-              <h1 className="font-display max-w-xl text-5xl leading-none text-stone-50 sm:text-6xl">
-                Dubey&apos;s Dhaba
-              </h1>
+              <div className="mb-6 flex items-center gap-4">
+                <img
+                  src="/logo.png"
+                  alt="Dubey's Dhaba logo"
+                  className="h-16 w-16 rounded-2xl border border-white/10 bg-white/5 object-contain p-2 shadow-lg"
+                />
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.45em] text-amber-400">
+                    Hotel Bajrang, Mako, Latehar
+                  </p>
+                  <h1 className="font-display mt-2 max-w-xl text-5xl leading-none text-stone-50 sm:text-6xl">
+                    Dubey&apos;s Dhaba
+                  </h1>
+                </div>
+              </div>
               <p className="mt-6 max-w-xl text-sm leading-7 text-stone-300 sm:text-base">
                 A straightforward dhaba-style stop for hearty Indian food, quick table service,
                 and a menu built around familiar favorites.
@@ -82,6 +91,20 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+
+          <a
+            href="https://cloudivion.com"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-10 flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.18em] text-stone-400 transition hover:text-stone-200"
+          >
+            <img
+              src="https://www.cloudivion.com/images/cloudivion-logo.png"
+              alt="Cloudivion logo"
+              className="h-4 w-4 rounded-sm object-contain"
+            />
+            <span>Powered by Cloudivion.com</span>
+          </a>
         </div>
       </section>
     </main>
