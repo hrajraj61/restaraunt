@@ -1,151 +1,286 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState
+} from "react";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import Link from "next/link";
 import {
   ArrowLeft,
   ChevronRight,
-  ClipboardList,
-  Coffee,
-  Flame,
   LayoutGrid,
-  Leaf,
   List,
+  Flame,
+  Leaf,
   Minus,
   Pin,
-  PinOff,
   Plus,
   Search,
   ShoppingBag,
-  Star,
-  Truck,
   Utensils,
-  Wheat,
-  X,
-  Zap
+  X
 } from "lucide-react";
 
-const CATEGORIES = [
-  { id: "starters", name: "Starters", icon: <Zap size={14} />, count: 6 },
-  { id: "mains", name: "Mains", icon: <Utensils size={14} />, count: 6 },
-  { id: "bread", name: "Breads", icon: <Wheat size={14} />, count: 4 },
-  { id: "beverage", name: "Drinks", icon: <Coffee size={14} />, count: 4 }
-];
+function getDietClasses(type) {
+  if (type === "non-veg") {
+    return "border-red-500/30 bg-red-500/10 text-red-200";
+  }
 
-const DISHES = [
-  { id: 1, cat: "starters", type: "veg", name: "Paneer Tikka", fullName: "Classic Malai Paneer Tikka", price: 320, rating: 4.8, desc: "Cottage cheese marinated in yellow chilies.", img: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?q=80&w=600" },
-  { id: 2, cat: "starters", type: "non-veg", name: "Chicken Wings", fullName: "Peri-Peri Flame Wings", price: 380, rating: 4.9, desc: "Citrus-habanero glaze fire-grilled wings.", img: "https://images.unsplash.com/photo-1527477396000-e27163b481c2?q=80&w=600" },
-  { id: 3, cat: "starters", type: "veg", name: "Hara Bhara Kabab", fullName: "Spinach and Pea Kabab", price: 260, rating: 4.6, desc: "Spiced patties made of spinach and green peas.", img: "https://images.unsplash.com/photo-1601050633647-8f8f5f30d31e?q=80&w=600" },
-  { id: 4, cat: "starters", type: "non-veg", name: "Fish Tikka", fullName: "Ajwaini Fish Tikka", price: 420, rating: 4.7, desc: "River fish marinated with carom seeds and yogurt.", img: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=600" },
-  { id: 5, cat: "starters", type: "veg", name: "Gobi 65", fullName: "Crispy Cauliflower 65", price: 240, rating: 4.5, desc: "Deep fried cauliflower tossed in south Indian spices.", img: "https://images.unsplash.com/photo-1589647363535-882ffc193ed1?q=80&w=600" },
-  { id: 6, cat: "starters", type: "non-veg", name: "Chicken 65", fullName: "Hyderabadi Chicken 65", price: 360, rating: 4.8, desc: "Spicy fried chicken tempered with curry leaves.", img: "https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?q=80&w=600" },
-  { id: 7, cat: "mains", type: "non-veg", name: "Butter Chicken", fullName: "Old Delhi Style Butter Chicken", price: 480, rating: 5.0, desc: "Tandoori charred chicken in velvet tomato gravy.", img: "https://images.unsplash.com/photo-1603894527176-222439f374e1?q=80&w=600" },
-  { id: 8, cat: "mains", type: "veg", name: "Dal Makhani", fullName: "24-Hour Dal Makhani", price: 340, rating: 4.7, desc: "Black lentils slow-cooked with cream.", img: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?q=80&w=600" },
-  { id: 9, cat: "mains", type: "veg", name: "Kadai Paneer", fullName: "Spicy Kadai Paneer", price: 360, rating: 4.8, desc: "Cottage cheese cooked with peppers in a wok.", img: "https://images.unsplash.com/photo-1626132646540-1f3c3018243a?q=80&w=600" },
-  { id: 10, cat: "mains", type: "non-veg", name: "Mutton Rogan Josh", fullName: "Kashmiri Mutton Curry", price: 540, rating: 4.9, desc: "Lamb cooked in a thin red gravy with dry ginger.", img: "https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=600" },
-  { id: 11, cat: "mains", type: "veg", name: "Mix Veg", fullName: "Seasonal Mix Vegetable", price: 280, rating: 4.4, desc: "Sauteed seasonal vegetables with mild spices.", img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=600" },
-  { id: 12, cat: "mains", type: "non-veg", name: "Chicken Biryani", fullName: "Lucknowi Chicken Biryani", price: 420, rating: 4.9, desc: "Aromatic basmati rice cooked with chicken on dum.", img: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?q=80&w=600" },
-  { id: 13, cat: "bread", type: "veg", name: "Garlic Naan", fullName: "Fresh Garlic Butter Naan", price: 80, rating: 4.9, desc: "Refined flour bread with chopped garlic.", img: "https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?q=80&w=600" },
-  { id: 14, cat: "bread", type: "veg", name: "Butter Roti", fullName: "Tandoori Butter Roti", price: 35, rating: 4.5, desc: "Whole wheat bread cooked in tandoor.", img: "https://images.unsplash.com/photo-1601050633647-8f8f5f30d31e?q=80&w=600" },
-  { id: 15, cat: "bread", type: "veg", name: "Laccha Paratha", fullName: "Multi-layered Paratha", price: 60, rating: 4.7, desc: "Crispy layered wheat bread finished with butter.", img: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?q=80&w=600" },
-  { id: 16, cat: "bread", type: "veg", name: "Missi Roti", fullName: "Gram Flour Flatbread", price: 50, rating: 4.6, desc: "Savory gram flour bread with herbs.", img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=600" },
-  { id: 17, cat: "beverage", type: "veg", name: "Mango Lassi", fullName: "Thick Mango Lassi", price: 120, rating: 4.8, desc: "Sweet yogurt drink blended with mango pulp.", img: "https://images.unsplash.com/photo-1546173159-315724a31696?q=80&w=600" },
-  { id: 18, cat: "beverage", type: "veg", name: "Fresh Lime Soda", fullName: "Refreshing Lime Soda", price: 80, rating: 4.5, desc: "Sweet and salted soda with fresh lemon.", img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=600" },
-  { id: 19, cat: "beverage", type: "veg", name: "Masala Chai", fullName: "Indian Spiced Tea", price: 40, rating: 4.9, desc: "Milk tea brewed with ginger and cardamom.", img: "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?q=80&w=600" },
-  { id: 20, cat: "beverage", type: "veg", name: "Cold Coffee", fullName: "Iced Coffee with Ice Cream", price: 160, rating: 4.7, desc: "Creamy cold coffee served with vanilla ice cream.", img: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=600" }
-];
+  if (type === "egg") {
+    return "border-yellow-500/30 bg-yellow-500/10 text-yellow-100";
+  }
 
-const Stepper = React.memo(function Stepper({ quantity, onAdd, onRemove, compact = false }) {
-  return (
-    <div className={`flex items-center overflow-hidden rounded-full border border-white/30 bg-white/10 ${compact ? "" : "backdrop-blur-md"}`}>
-      <button onClick={onRemove} className={`${compact ? "p-1.5" : "p-2"} transition-colors hover:bg-white/10`}>
-        {quantity > 1 ? <Minus size={compact ? 12 : 16} /> : <X size={compact ? 12 : 16} className="text-red-400" />}
-      </button>
-      <span className={`${compact ? "w-6 text-xs" : "w-8 text-sm"} text-center font-body font-semibold`}>{quantity}</span>
-      <button onClick={onAdd} className={`${compact ? "p-1.5" : "p-2"} transition-colors hover:bg-white/10`}>
-        <Plus size={compact ? 12 : 16} />
-      </button>
-    </div>
-  );
-});
+  return "border-green-500/30 bg-green-500/10 text-green-100";
+}
 
-const DishCard = React.memo(function DishCard({
+function getDietIcon(type) {
+  return type === "veg" ? <Leaf size={12} /> : <Flame size={12} />;
+}
+
+function DishCard({
   dish,
+  mode,
   cartQty,
   onAdd,
   onRemove,
-  mode,
   isHighlighted,
   onToggleHighlight
 }) {
-  const isImmersive = mode === "immersive";
-
   return (
-    <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`relative ${isImmersive ? "mb-2" : "mb-1"}`}>
-      <div className={`${isImmersive ? "flex flex-col p-2" : "flex items-center gap-2 p-2"} ${isHighlighted ? "bg-amber-500/10" : ""} border-b border-white/5 transition-colors`}>
-        <div className={`relative flex-shrink-0 overflow-hidden rounded ${isImmersive ? "mb-2 h-32 w-full" : "h-12 w-12"}`}>
-          <img src={dish.img} className="h-full w-full object-cover" alt={dish.name} loading="lazy" />
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleHighlight(dish.id);
-            }}
-            className={`absolute left-1 top-1 rounded p-1 backdrop-blur-md ${isHighlighted ? "bg-amber-500 text-black" : "bg-black/60 text-white/60"}`}
-          >
-            <Pin size={8} className={isHighlighted ? "fill-black" : ""} />
-          </button>
-          {isImmersive ? (
-            <div className="absolute right-1 top-1 flex items-center gap-1 rounded bg-black/60 px-1.5 py-0.5 backdrop-blur-md">
-              <Star size={8} className="fill-amber-400 text-amber-400" />
-              <span className="font-body text-xs text-white">{dish.rating}</span>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="flex min-w-0 flex-1 flex-col justify-center">
-          <div className={`${isImmersive ? "" : "flex items-center justify-between gap-2"}`}>
-            <div className="flex items-center gap-1.5 truncate">
-              <span className={`rounded p-0.5 ${dish.type === "veg" ? "bg-green-500/30 text-green-400" : "bg-red-500/30 text-red-400"}`}>
-                {dish.type === "veg" ? <Leaf size={isImmersive ? 12 : 10} /> : <Flame size={isImmersive ? 12 : 10} />}
-              </span>
-              <h3 className={`font-body ${isImmersive ? "text-lg font-medium" : "text-sm font-medium"} truncate text-white`}>
-                {dish.name}
-              </h3>
-            </div>
-            {isImmersive ? null : <p className="whitespace-nowrap font-body text-sm font-semibold text-amber-400">₹{dish.price}</p>}
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+      className={`group relative overflow-hidden rounded-lg border transition-all ${
+        isHighlighted
+          ? "border-amber-500/50 bg-amber-500/5"
+          : "border-white/10 bg-white/5"
+      } backdrop-blur-lg hover:bg-white/8`}
+    >
+      {mode === "immersive" ? (
+        <div className="relative">
+          <div className="aspect-[3/2] overflow-hidden">
+            <img
+              src={dish.img}
+              alt={dish.name}
+              className="h-full w-full object-cover transition-transform group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
           </div>
-          {isImmersive ? (
-            <>
-              <p className="mb-2 line-clamp-2 font-body text-xs leading-relaxed text-white/60">{dish.desc}</p>
-              <p className="font-body text-base font-semibold text-amber-400">₹{dish.price}</p>
-            </>
-          ) : null}
-          <div className={`${isImmersive ? "mt-2" : "mt-1"} flex items-center justify-end`}>
-            {cartQty > 0 ? (
-              <Stepper quantity={cartQty} onAdd={() => onAdd(dish.id)} onRemove={() => onRemove(dish.id)} compact={!isImmersive} />
-            ) : (
-              <button onClick={() => onAdd(dish.id)} className={`${isImmersive ? "px-4 py-2" : "px-3 py-1"} rounded-full bg-white font-body text-[10px] font-semibold uppercase tracking-wide text-black`}>
-                Add
+          <div className="absolute inset-0 p-3 flex flex-col justify-between">
+            <div className="flex justify-between items-start">
+              <button
+                onClick={() => onToggleHighlight(dish.id)}
+                className={`rounded-full p-1.5 transition-all ${
+                  isHighlighted
+                    ? "bg-amber-500 text-black"
+                    : "bg-black/30 text-white/70 hover:bg-black/50"
+                }`}
+              >
+                <Pin size={12} className={isHighlighted ? "fill-black" : ""} />
               </button>
-            )}
+              <div className={`rounded-full px-2 py-1 text-[9px] font-bold uppercase ${
+                dish.type === "veg" 
+                  ? "bg-green-500/20 text-green-300 border border-green-500/40"
+                  : "bg-red-500/20 text-red-300 border border-red-500/40"
+              }`}>
+                {dish.type === "veg" ? <Leaf size={8} /> : <Flame size={8} />}
+              </div>
+            </div>
+            <div>
+              <h3 className="font-body text-lg font-bold text-white mb-1">{dish.name}</h3>
+              <p className="font-body text-xs text-white/70 leading-tight mb-2 line-clamp-2">{dish.desc}</p>
+              <div className="flex items-center justify-between">
+                <span className="font-body text-sm font-bold text-white">₹{dish.price}</span>
+                {cartQty > 0 ? (
+                  <div className="flex items-center gap-1 bg-white/20 rounded-full p-1">
+                    <button
+                      onClick={() => onRemove(dish.id)}
+                      className="rounded-full bg-white/20 p-1 hover:bg-white/30"
+                    >
+                      {cartQty > 1 ? <Minus size={10} /> : <X size={10} />}
+                    </button>
+                    <span className="font-body text-xs font-bold text-white px-2">{cartQty}</span>
+                    <button
+                      onClick={() => onAdd(dish.id)}
+                      className="rounded-full bg-white/20 p-1 hover:bg-white/30"
+                    >
+                      <Plus size={10} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => onAdd(dish.id)}
+                    className="font-body text-[10px] font-bold uppercase bg-white text-black px-3 py-1 rounded-full hover:bg-white/90 transition-colors"
+                  >
+                    Add
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="p-3">
+          <div className="flex gap-3">
+            <div className="relative w-16 h-16 overflow-hidden rounded-lg flex-shrink-0">
+              <img
+                src={dish.img}
+                alt={dish.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <h3 className="font-body text-sm font-semibold text-white truncate">{dish.name}</h3>
+                <button
+                  onClick={() => onToggleHighlight(dish.id)}
+                  className={`flex-shrink-0 rounded-full p-1 transition-all ${
+                    isHighlighted
+                      ? "bg-amber-500 text-black"
+                      : "bg-white/10 text-white/40 hover:bg-white/20"
+                  }`}
+                >
+                  <Pin size={10} className={isHighlighted ? "fill-black" : ""} />
+                </button>
+              </div>
+              <p className="font-body text-xs text-white/60 leading-tight mb-2 line-clamp-1">{dish.desc}</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="font-body text-sm font-bold text-white">₹{dish.price}</span>
+                  <div className={`rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase ${
+                    dish.type === "veg"
+                      ? "bg-green-500/20 text-green-300"
+                      : "bg-red-500/20 text-red-300"
+                  }`}>
+                    {dish.type === "veg" ? <Leaf size={6} /> : <Flame size={6} />}
+                  </div>
+                </div>
+                {cartQty > 0 ? (
+                  <div className="flex items-center gap-1 bg-white/20 rounded-full p-0.5">
+                    <button
+                      onClick={() => onRemove(dish.id)}
+                      className="rounded-full bg-white/20 p-1 hover:bg-white/30"
+                    >
+                      {cartQty > 1 ? <Minus size={8} /> : <X size={8} />}
+                    </button>
+                    <span className="font-body text-xs font-bold text-white px-2">{cartQty}</span>
+                    <button
+                      onClick={() => onAdd(dish.id)}
+                      className="rounded-full bg-white/20 p-1 hover:bg-white/30"
+                    >
+                      <Plus size={8} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => onAdd(dish.id)}
+                    className="font-body text-[9px] font-bold uppercase bg-white text-black px-2 py-1 rounded-full hover:bg-white/90 transition-colors"
+                  >
+                    Add
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
-});
+}
 
 export default function MenuApp() {
-  const [activeCat, setActiveCat] = useState("starters");
+  const [menu, setMenu] = useState(null);
+  const [activeCat, setActiveCat] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState("list");
   const [dietFilter, setDietFilter] = useState("all");
   const [cart, setCart] = useState({});
   const [highlights, setHighlights] = useState([]);
   const [showHighlightsModal, setShowHighlightsModal] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [showDineInInstruction, setShowDineInInstruction] = useState(false);
+  const [viewMode, setViewMode] = useState("list");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const deferredSearch = useDeferredValue(searchQuery.trim().toLowerCase());
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadMenu() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch("/api/menu", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Failed to fetch menu");
+        }
+
+        const payload = await response.json();
+        if (!cancelled) {
+          setMenu(payload.menu);
+          setActiveCat((current) => current || payload.menu.categories[0]?.id || "");
+        }
+      } catch (fetchError) {
+        if (!cancelled) {
+          setError(fetchError.message || "Unable to load menu");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadMenu();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const categories = menu?.categories ?? [];
+
+  const allItems = useMemo(
+    () =>
+      categories.flatMap((category) =>
+        category.items.map((item) => ({
+          ...item,
+          categoryId: category.id,
+          categoryName: category.name,
+          // Transform for older theme compatibility
+          desc: item.description,
+          price: item.pricing.kind === "fixed" ? item.pricing.price : item.displayPrice,
+          img: item.image
+        }))
+      ),
+    [categories]
+  );
+
+  const filteredDishes = useMemo(() => {
+    return allItems.filter((dish) => {
+      const searchTerms = searchQuery.trim().toLowerCase();
+      const matchesSearch =
+        searchTerms === "" ||
+        dish.name.toLowerCase().includes(searchTerms) ||
+        dish.desc.toLowerCase().includes(searchTerms) ||
+        dish.categoryName.toLowerCase().includes(searchTerms);
+      const matchesCat = searchTerms !== "" ? true : dish.categoryId === activeCat;
+      const matchesDiet = dietFilter === "all" || dish.type === dietFilter;
+      return matchesSearch && matchesCat && matchesDiet;
+    });
+  }, [searchQuery, activeCat, dietFilter, allItems]);
+
+  const selectedDishes = useMemo(() => allItems.filter((dish) => Boolean(cart[dish.id])), [cart, allItems]);
+  const totalCartItems = Object.values(cart).reduce((a, b) => a + b, 0);
+  const totalCartPrice = selectedDishes.reduce((sum, dish) => sum + dish.price * (cart[dish.id] || 0), 0);
+  const highlightedDishes = useMemo(() => allItems.filter((dish) => highlights.includes(dish.id)), [highlights, allItems]);
 
   const addToCart = useCallback((id) => {
     setCart((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
@@ -168,35 +303,18 @@ export default function MenuApp() {
     });
   }, []);
 
-  const filteredDishes = useMemo(() => {
-    return DISHES.filter((dish) => {
-      const searchTerms = searchQuery.trim().toLowerCase();
-      const matchesSearch =
-        searchTerms === "" ||
-        dish.name.toLowerCase().includes(searchTerms) ||
-        dish.desc.toLowerCase().includes(searchTerms) ||
-        dish.fullName.toLowerCase().includes(searchTerms);
-      const matchesCat = searchTerms !== "" ? true : dish.cat === activeCat;
-      const matchesDiet = dietFilter === "all" || dish.type === dietFilter;
-      return matchesSearch && matchesCat && matchesDiet;
-    });
-  }, [searchQuery, activeCat, dietFilter]);
-
-  const selectedDishes = useMemo(() => DISHES.filter((dish) => Boolean(cart[dish.id])), [cart]);
-  const totalCartItems = Object.values(cart).reduce((a, b) => a + b, 0);
-  const totalCartPrice = selectedDishes.reduce((sum, dish) => sum + dish.price * (cart[dish.id] || 0), 0);
-  const highlightedDishes = useMemo(() => DISHES.filter((dish) => highlights.includes(dish.id)), [highlights]);
-
   const handleHomeDelivery = useCallback(() => {
-    const number = "6202525132";
-    let message = "*Dubey's Dhaba Order*%0A%0A";
+    const number = menu?.restaurant?.phone || "6202525132";
+    let message = `*${menu?.restaurant?.name || "Dubey's Dhaba"} Order*%0A%0A`;
     selectedDishes.forEach((dish) => {
       message += `- ${dish.name} (x${cart[dish.id]}) - Rs. ${dish.price * cart[dish.id]}%0A`;
     });
     message += `%0A*TOTAL ITEMS:* ${totalCartItems}`;
     message += "%0A%0A*REQUEST:* I'd like to get this delivered to my home. Please confirm.";
     window.open(`https://wa.me/91${number}?text=${message}`, "_blank", "noopener,noreferrer");
-  }, [cart, selectedDishes, totalCartItems]);
+  }, [cart, selectedDishes, totalCartItems, menu]);
+
+  const heroImage = filteredDishes[0]?.img || allItems[0]?.img || "";
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-stone-950 text-white">
@@ -210,7 +328,7 @@ export default function MenuApp() {
                 animate={{ opacity: 0.08 }}
                 exit={{ opacity: 0 }}
                 className="absolute inset-0 bg-cover bg-center grayscale-[80%]"
-                style={{ backgroundImage: `url(${filteredDishes[0]?.img || DISHES[0].img})` }}
+                style={{ backgroundImage: `url(${heroImage})` }}
               />
             </AnimatePresence>
             <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
@@ -222,8 +340,8 @@ export default function MenuApp() {
                 <Link href="/" className="mb-1 inline-flex items-center gap-1 font-body text-[10px] uppercase text-white/50">
                   <ArrowLeft size={12} /> Home
                 </Link>
-                <h1 className="font-display text-2xl font-bold text-amber-500">Dubey&apos;s Dhaba</h1>
-                <p className="font-body text-xs text-white/50">Hotel Bajrang, Mako, Latehar</p>
+                <h1 className="font-display text-2xl font-bold text-amber-500">{menu?.restaurant?.name || "Dubey's Dhaba"}</h1>
+                <p className="font-body text-xs text-white/50">{menu?.restaurant?.address || "Hotel Bajrang, Mako, Latehar"}</p>
               </div>
               <div className="flex gap-2 self-start">
                 <button
@@ -256,7 +374,7 @@ export default function MenuApp() {
 
           <nav className="relative z-50 border-b border-white/10 px-3 py-2">
             <div className="no-scrollbar flex gap-1 overflow-x-auto">
-              {CATEGORIES.map((cat) => (
+              {categories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => {
@@ -265,7 +383,6 @@ export default function MenuApp() {
                   }}
                   className={`flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1.5 font-body text-xs transition-all ${activeCat === cat.id && searchQuery === "" ? "bg-white font-medium text-black" : "bg-white/10 font-normal text-white/60"}`}
                 >
-                  {cat.icon}
                   <span className="text-xs uppercase">{cat.name} <span className="ml-0.5 opacity-50">{cat.count}</span></span>
                 </button>
               ))}
@@ -292,7 +409,20 @@ export default function MenuApp() {
               )}
             </div>
             <LayoutGroup>
-              {filteredDishes.length > 0 ? (
+              {loading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="h-20 animate-pulse rounded-lg border border-white/10 bg-white/5"
+                    />
+                  ))}
+                </div>
+              ) : error ? (
+                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
+                  {error}
+                </div>
+              ) : filteredDishes.length > 0 ? (
                 <div className="space-y-0">
                   {filteredDishes.map((dish) => (
                     <DishCard
@@ -415,17 +545,15 @@ export default function MenuApp() {
                             <div className="flex items-center gap-0.5">
                               <button
                                 onClick={() => removeFromCart(dish.id)}
-                                className="flex h-6 w-6 items-center justify-center rounded-full border border-black/10 bg-white text-black transition hover:bg-black hover:text-white"
-                                aria-label={`Decrease ${dish.name}`}
+                                className="flex h-6 w-6 items-center justify-center rounded-full bg-black/5 hover:bg-black/10"
                               >
-                                {cart[dish.id] > 1 ? <Minus size={12} /> : <X size={12} />}
+                                {cart[dish.id] > 1 ? <Minus size={10} /> : <X size={10} />}
                               </button>
                               <button
                                 onClick={() => addToCart(dish.id)}
-                                className="flex h-6 w-6 items-center justify-center rounded-full bg-black text-white transition hover:bg-neutral-800"
-                                aria-label={`Increase ${dish.name}`}
+                                className="flex h-6 w-6 items-center justify-center rounded-full bg-black text-white hover:bg-black/90"
                               >
-                                <Plus size={12} />
+                                <Plus size={10} />
                               </button>
                             </div>
                           </div>
@@ -433,93 +561,28 @@ export default function MenuApp() {
                       </div>
                     </div>
 
-                    <div className="space-y-2 border-t border-black/5 pt-3">
-                      <div className="flex items-center justify-between rounded-lg bg-neutral-100 px-3 py-2">
-                        <span className="font-body text-[10px] font-semibold uppercase tracking-[0.18em] text-black/50">Total</span>
-                        <span className="font-body text-sm font-bold text-black">₹{totalCartPrice}</span>
+                    <div className="mt-3 space-y-2 border-t border-black/5 pt-3">
+                      <div className="flex items-center justify-between rounded-lg bg-gray-100 px-3 py-2.5 text-black">
+                        <span className="font-body text-[10px] font-bold uppercase tracking-[0.22em] text-gray-600">Total</span>
+                        <span className="font-body text-lg font-bold">₹{totalCartPrice}</span>
                       </div>
-                      <div className="flex items-center gap-2 rounded-lg border border-amber-100 bg-amber-50 p-2.5">
-                        <ClipboardList size={16} className="flex-shrink-0 text-amber-600" />
-                        <p className="font-body text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-900">
-                          Show this to the waiter or choose delivery below.
-                        </p>
-                      </div>
-
-                      <div className="flex gap-2">
+                      <div className="flex gap-1.5">
                         <button
                           onClick={() => setShowDineInInstruction(true)}
-                          className="h-10 flex-1 rounded-lg bg-neutral-100 font-body text-xs font-bold uppercase tracking-[0.2em] text-black"
+                          className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 font-body text-xs font-bold uppercase tracking-[0.18em] text-black transition-colors hover:bg-amber-400"
                         >
-                          Dine-In
+                          <Utensils size={12} />
+                          Dine In
                         </button>
                         <button
                           onClick={handleHomeDelivery}
-                          className="flex h-10 flex-[2] items-center justify-center gap-2 rounded-lg bg-black font-body text-xs font-bold uppercase tracking-[0.2em] text-white"
+                          className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-black px-4 py-2.5 font-body text-xs font-bold uppercase tracking-[0.18em] text-white transition-colors hover:bg-black/90"
                         >
-                          <Truck size={16} /> Home Delivery
+                          <ShoppingBag size={12} />
+                          Delivery
                         </button>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              </div>
-            ) : null}
-          </AnimatePresence>
-
-          <AnimatePresence>
-            {showHighlightsModal ? (
-              <div className="absolute inset-0 z-[200] flex items-end justify-center p-4 sm:items-center">
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setShowHighlightsModal(false)}
-                  className="absolute inset-0 bg-black/80 backdrop-blur-md"
-                />
-                <motion.div
-                  initial={{ y: 100, scale: 0.9 }}
-                  animate={{ y: 0, scale: 1 }}
-                  exit={{ y: 100, scale: 0.9 }}
-                  className="relative w-full max-w-sm overflow-hidden rounded-xl border border-white/10 bg-[#111] p-4 shadow-2xl"
-                >
-                  <div className="absolute right-0 top-0 p-3">
-                    <button onClick={() => setShowHighlightsModal(false)} className="rounded-full bg-white/5 p-1.5">
-                      <X size={14} />
-                    </button>
-                  </div>
-                  <div className="flex flex-col gap-4">
-                    <div>
-                      <h2 className="flex items-center gap-2 text-lg font-black tracking-tighter text-amber-500">
-                        <Pin size={18} className="fill-amber-500" /> Top Highlights
-                      </h2>
-                      <p className="mt-1 text-[9px] uppercase tracking-widest text-white/30">Your curated selection (max 4)</p>
-                    </div>
-                    <div className="grid grid-cols-1 gap-2">
-                      {highlightedDishes.length > 0 ? (
-                        highlightedDishes.map((dish) => (
-                          <div key={dish.id} className="flex items-center gap-3 rounded-lg border border-white/5 bg-white/5 p-2.5">
-                            <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
-                              <img src={dish.img} className="h-full w-full object-cover" alt={dish.name} />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <h3 className="truncate text-sm font-bold uppercase">{dish.name}</h3>
-                              <p className="text-sm font-black text-amber-500">₹{dish.price}</p>
-                            </div>
-                            <button onClick={() => toggleHighlight(dish.id)} className="p-2 text-white/20">
-                              <PinOff size={16} />
-                            </button>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="flex flex-col items-center gap-3 py-10 text-center opacity-20">
-                          <Pin size={32} />
-                          <p className="text-xs font-bold uppercase tracking-widest">No items pinned</p>
-                        </div>
-                      )}
-                    </div>
-                    <button onClick={() => setShowHighlightsModal(false)} className="w-full rounded-lg bg-white py-2.5 text-xs font-black uppercase tracking-widest text-black shadow-lg">
-                      Back to Menu
-                    </button>
                   </div>
                 </motion.div>
               </div>

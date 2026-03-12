@@ -1,0 +1,203 @@
+{
+  "restaurant": {
+    "id": "dubeys-dhaba",
+    "name": "Dubey's Dhaba",
+    "address": "Hotel Bajrang, Mako, Latehar",
+    "currency": "INR",
+    "phone": "8809979666"
+  },
+  "categories": [
+    {
+      "id": "chinese",
+      "name": "Chinese",
+      "type": "all",
+      "items": [
+        { "id": "paneer-salt-paper", "name": "Paneer Salt Paper", "type": "veg", "description": "Paneer Salt Paper from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 160 } },
+        { "id": "mushroom-salt-paper", "name": "Mushroom Salt Paper", "type": "veg", "description": "Mushroom Salt Paper from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 180 } },
+        { "id": "corn-chilli", "name": "Corn Chilli", "type": "veg", "description": "Corn Chilli from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 190 } },
+        { "id": "corn-salt-paper", "name": "Corn Salt Paper", "type": "veg", "description": "Corn Salt Paper from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 180 } },
+        { "id": "crispy-babycorn", "name": "Crispy Babycorn", "type": "veg", "description": "Crispy Babycorn from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 170 } },
+        { "id": "veg-schezwan-fry-rice", "name": "Veg Schezwan Fry Rice", "type": "veg", "description": "Veg Schezwan Fry Rice from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 130 } },
+        { "id": "veg-lolly-pop-6-pcs", "name": "Veg Lolly Pop (6 pcs)", "type": "veg", "description": "Veg Lolly Pop (6 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 150 } },
+        { "id": "veg-chilly-dry-10-pcs", "name": "Veg Chilly Dry (10 pcs)", "type": "veg", "description": "Veg Chilly Dry (10 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 140 } },
+        { "id": "veg-manchurian-dry-10-pcs", "name": "Veg Manchurian Dry (10 pcs)", "type": "veg", "description": "Veg Manchurian Dry (10 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 150 } },
+        { "id": "veg-spring-roll", "name": "Veg Spring Roll", "type": "veg", "description": "Veg Spring Roll from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 130 } },
+        { "id": "veg-hakka-noodles", "name": "Veg Hakka Noodles", "type": "veg", "description": "Veg Hakka Noodles from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 130 } },
+        { "id": "veg-garlic-noodles", "name": "Veg Garlic Noodles", "type": "veg", "description": "Veg Garlic Noodles from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 130 } },
+        { "id": "veg-manchurian-gravy-10-pcs", "name": "Veg Manchurian (Gravy 10 pcs)", "type": "veg", "description": "Veg Manchurian (Gravy 10 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 150 } },
+        { "id": "veg-chilly-gravy-10-pcs", "name": "Veg Chilly (Gravy 10 pcs)", "type": "veg", "description": "Veg Chilly (Gravy 10 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 150 } },
+        { "id": "veg-drums-6-pcs", "name": "Veg Drums (6 pcs)", "type": "veg", "description": "Veg Drums (6 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 130 } },
+        { "id": "mushroom-chilly-dry", "name": "Mushroom Chilly (Dry)", "type": "veg", "description": "Mushroom Chilly (Dry) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 180 } },
+        { "id": "paneer-chilly-dry-10-pcs", "name": "Paneer Chilly (Dry 10 pcs)", "type": "veg", "description": "Paneer Chilly (Dry 10 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 150 } },
+        { "id": "paneer-chilly-gravy-10-pcs", "name": "Paneer Chilly (Gravy 10 pcs)", "type": "veg", "description": "Paneer Chilly (Gravy 10 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 160 } },
+        { "id": "baby-corn-chilly-dry", "name": "Baby Corn Chilly (Dry)", "type": "veg", "description": "Baby Corn Chilly (Dry) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 150 } },
+        { "id": "veg-mix-noodles", "name": "Veg Mix Noodles", "type": "veg", "description": "Veg Mix Noodles from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 150 } },
+        { "id": "veg-fry-rice", "name": "Veg Fry Rice", "type": "veg", "description": "Veg Fry Rice from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 110 } },
+        { "id": "veg-mix-fry-rice", "name": "Veg Mix Fry Rice", "type": "veg", "description": "Veg Mix Fry Rice from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 150 } },
+        { "id": "paneer-roll", "name": "Paneer Roll", "type": "veg", "description": "Paneer Roll from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 80 } },
+        { "id": "veg-roll", "name": "Veg Roll", "type": "veg", "description": "Veg Roll from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 70 } },
+        { "id": "chicken-chilli-bone-10-pcs", "name": "Chicken Chilli (Bone 10 pcs)", "type": "non-veg", "description": "Chicken Chilli (Bone 10 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 180 } },
+        { "id": "chicken-lolly-pop-6-pcs", "name": "Chicken Lolly Pop (6 pcs)", "type": "non-veg", "description": "Chicken Lolly Pop (6 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 260 } },
+        { "id": "chicken-chilli-b-l-10-pcs", "name": "Chicken Chilli (B/L 10 pcs)", "type": "non-veg", "description": "Chicken Chilli (B/L 10 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 190 } },
+        { "id": "chicken-manchurian-10-pcs", "name": "Chicken Manchurian (10 pcs)", "type": "non-veg", "description": "Chicken Manchurian (10 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 199 } },
+        { "id": "chicken-hakka-noodles", "name": "Chicken Hakka Noodles", "type": "non-veg", "description": "Chicken Hakka Noodles from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 179 } },
+        { "id": "chicken-schezwan-noodles", "name": "Chicken Schezwan Noodles", "type": "non-veg", "description": "Chicken Schezwan Noodles from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 189 } },
+        { "id": "chicken-garlic-noodles", "name": "Chicken Garlic Noodles", "type": "non-veg", "description": "Chicken Garlic Noodles from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 189 } },
+        { "id": "chicken-65-10-pcs", "name": "Chicken 65 (10 pcs)", "type": "non-veg", "description": "Chicken 65 (10 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 190 } },
+        { "id": "chicken-crispy-10-pcs", "name": "Chicken Crispy (10 pcs)", "type": "non-veg", "description": "Chicken Crispy (10 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 199 } },
+        { "id": "chicken-mix-chowmein", "name": "Chicken Mix Chowmein", "type": "non-veg", "description": "Chicken Mix Chowmein from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 199 } },
+        { "id": "chicken-fry-rice", "name": "Chicken Fry Rice", "type": "non-veg", "description": "Chicken Fry Rice from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 179 } },
+        { "id": "chicken-mix-fry-rice", "name": "Chicken Mix Fry Rice", "type": "non-veg", "description": "Chicken Mix Fry Rice from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 190 } },
+        { "id": "lemon-chicken-10-pcs", "name": "Lemon Chicken (10 pcs)", "type": "non-veg", "description": "Lemon Chicken (10 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 190 } },
+        { "id": "chicken-schezwan-fry-rice-spicy", "name": "Chicken Schezwan Fry Rice (Spicy)", "type": "non-veg", "description": "Chicken Schezwan Fry Rice (Spicy) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 160 } },
+        { "id": "schezwan-chicken-spicy", "name": "Schezwan Chicken (Spicy)", "type": "non-veg", "description": "Schezwan Chicken (Spicy) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 219 } },
+        { "id": "chicken-hot-garlic-sauce-10-pcs", "name": "Chicken Hot Garlic Sauce (10 pcs)", "type": "non-veg", "description": "Chicken Hot Garlic Sauce (10 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 199 } },
+        { "id": "chicken-manchurian-gravy-10-pcs", "name": "Chicken Manchurian (Gravy 10 pcs)", "type": "non-veg", "description": "Chicken Manchurian (Gravy 10 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 199 } },
+        { "id": "chicken-chilli-gravy-10-pcs", "name": "Chicken Chilli (Gravy 10 pcs)", "type": "non-veg", "description": "Chicken Chilli (Gravy 10 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 199 } },
+        { "id": "chicken-drums-6-pcs", "name": "Chicken Drums (6 pcs)", "type": "non-veg", "description": "Chicken Drums (6 pcs) from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 190 } },
+        { "id": "chicken-salt-and-pepper", "name": "Chicken Salt & Pepper", "type": "non-veg", "description": "Chicken Salt & Pepper from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/327158/pexels-photo-327158.jpeg?cs=srgb&dl=pexels-joshsorenson-327158.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 190 } },
+        { "id": "egg-chowmein", "name": "Egg Chowmein", "type": "egg", "description": "Egg Chowmein from the Chinese section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/5848494/pexels-photo-5848494.jpeg?cs=srgb&dl=pexels-polina-tankilevitch-5848494.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 150 } }
+      ]
+    },
+    {
+      "id": "pizza",
+      "name": "Pizza",
+      "type": "all",
+      "items": [
+        {
+          "id": "golden-corn",
+          "name": "Golden Corn",
+          "type": "veg",
+          "description": "Golden Corn from the Pizza section at Dubey's Dhaba.",
+          "image": "https://images.pexels.com/photos/825661/pexels-photo-825661.jpeg?cs=srgb&dl=pexels-narda-yescas-724842-825661.jpg&fm=jpg",
+          "pricing": {
+            "kind": "variant",
+            "variants": [
+              { "id": "golden-corn-regular-8-inch", "label": "Regular (8\")", "size": "Regular", "inches": 8, "price": 179 },
+              { "id": "golden-corn-medium-10-inch", "label": "Medium (10\")", "size": "Medium", "inches": 10, "price": 249 }
+            ]
+          }
+        },
+        {
+          "id": "paneer-capsicum",
+          "name": "Paneer Capsicum",
+          "type": "veg",
+          "description": "Paneer Capsicum from the Pizza section at Dubey's Dhaba.",
+          "image": "https://images.pexels.com/photos/825661/pexels-photo-825661.jpeg?cs=srgb&dl=pexels-narda-yescas-724842-825661.jpg&fm=jpg",
+          "pricing": {
+            "kind": "variant",
+            "variants": [
+              { "id": "paneer-capsicum-regular-8-inch", "label": "Regular (8\")", "size": "Regular", "inches": 8, "price": 169 },
+              { "id": "paneer-capsicum-medium-10-inch", "label": "Medium (10\")", "size": "Medium", "inches": 10, "price": 239 }
+            ]
+          }
+        },
+        {
+          "id": "paneer",
+          "name": "Paneer",
+          "type": "veg",
+          "description": "Paneer from the Pizza section at Dubey's Dhaba.",
+          "image": "https://images.pexels.com/photos/825661/pexels-photo-825661.jpeg?cs=srgb&dl=pexels-narda-yescas-724842-825661.jpg&fm=jpg",
+          "pricing": {
+            "kind": "variant",
+            "variants": [
+              { "id": "paneer-regular-8-inch", "label": "Regular (8\")", "size": "Regular", "inches": 8, "price": 159 },
+              { "id": "paneer-medium-10-inch", "label": "Medium (10\")", "size": "Medium", "inches": 10, "price": 229 }
+            ]
+          }
+        },
+        {
+          "id": "mushroom",
+          "name": "Mushroom",
+          "type": "veg",
+          "description": "Mushroom from the Pizza section at Dubey's Dhaba.",
+          "image": "https://images.pexels.com/photos/825661/pexels-photo-825661.jpeg?cs=srgb&dl=pexels-narda-yescas-724842-825661.jpg&fm=jpg",
+          "pricing": {
+            "kind": "variant",
+            "variants": [
+              { "id": "mushroom-regular-8-inch", "label": "Regular (8\")", "size": "Regular", "inches": 8, "price": 159 },
+              { "id": "mushroom-medium-10-inch", "label": "Medium (10\")", "size": "Medium", "inches": 10, "price": 229 }
+            ]
+          }
+        },
+        {
+          "id": "mushroom-capsicum",
+          "name": "Mushroom Capsicum",
+          "type": "veg",
+          "description": "Mushroom Capsicum from the Pizza section at Dubey's Dhaba.",
+          "image": "https://images.pexels.com/photos/825661/pexels-photo-825661.jpeg?cs=srgb&dl=pexels-narda-yescas-724842-825661.jpg&fm=jpg",
+          "pricing": {
+            "kind": "variant",
+            "variants": [
+              { "id": "mushroom-capsicum-regular-8-inch", "label": "Regular (8\")", "size": "Regular", "inches": 8, "price": 179 }
+            ]
+          }
+        },
+        {
+          "id": "onion-capsicum",
+          "name": "Onion Capsicum",
+          "type": "veg",
+          "description": "Onion Capsicum from the Pizza section at Dubey's Dhaba.",
+          "image": "https://images.pexels.com/photos/825661/pexels-photo-825661.jpeg?cs=srgb&dl=pexels-narda-yescas-724842-825661.jpg&fm=jpg",
+          "pricing": {
+            "kind": "variant",
+            "variants": [
+              { "id": "onion-capsicum-regular-8-inch", "label": "Regular (8\")", "size": "Regular", "inches": 8, "price": 139 }
+            ]
+          }
+        },
+        {
+          "id": "veg-loaded",
+          "name": "Veg Loaded",
+          "type": "veg",
+          "description": "Veg Loaded from the Pizza section at Dubey's Dhaba.",
+          "image": "https://images.pexels.com/photos/825661/pexels-photo-825661.jpeg?cs=srgb&dl=pexels-narda-yescas-724842-825661.jpg&fm=jpg",
+          "pricing": {
+            "kind": "variant",
+            "variants": [
+              { "id": "veg-loaded-regular-8-inch", "label": "Regular (8\")", "size": "Regular", "inches": 8, "price": 199 }
+            ]
+          }
+        },
+        {
+          "id": "chicken-barbeque",
+          "name": "Chicken Barbeque",
+          "type": "non-veg",
+          "description": "Chicken Barbeque from the Pizza section at Dubey's Dhaba.",
+          "image": "https://images.pexels.com/photos/33458051/pexels-photo-33458051.jpeg?cs=srgb&dl=pexels-pedrofurtadoo-33458051.jpg&fm=jpg",
+          "pricing": {
+            "kind": "variant",
+            "variants": [
+              { "id": "chicken-barbeque-regular-8-inch", "label": "Regular (8\")", "size": "Regular", "inches": 8, "price": 179 },
+              { "id": "chicken-barbeque-medium-10-inch", "label": "Medium (10\")", "size": "Medium", "inches": 10, "price": 249 }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "pasta",
+      "name": "Pasta",
+      "type": "veg",
+      "items": [
+        { "id": "red-sauce-pasta", "name": "Red Sauce Pasta", "type": "veg", "description": "Red Sauce Pasta from the Pasta section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?cs=srgb&dl=pexels-enginakyurt-1437267.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 229 } },
+        { "id": "white-sauce-pasta", "name": "White Sauce Pasta", "type": "veg", "description": "White Sauce Pasta from the Pasta section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?cs=srgb&dl=pexels-enginakyurt-1437267.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 249 } },
+        { "id": "pasta-classic", "name": "Pasta", "type": "veg", "description": "Pasta from the Pasta section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?cs=srgb&dl=pexels-enginakyurt-1437267.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 199 } }
+      ]
+    },
+    {
+      "id": "egg",
+      "name": "Egg",
+      "type": "egg",
+      "items": [
+        { "id": "egg-curry-2-pc", "name": "Egg Curry (2 pc)", "type": "egg", "description": "Egg Curry (2 pc) from the Egg section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/6294240/pexels-photo-6294240.jpeg?cs=srgb&dl=pexels-saveurs-secretes-7625056-6294240.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 130 } },
+        { "id": "egg-masala-2-pc", "name": "Egg Masala (2 pc)", "type": "egg", "description": "Egg Masala (2 pc) from the Egg section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/6294240/pexels-photo-6294240.jpeg?cs=srgb&dl=pexels-saveurs-secretes-7625056-6294240.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 130 } },
+        { "id": "amlet-2-pc", "name": "Amlet (2 pc)", "type": "egg", "description": "Amlet (2 pc) from the Egg section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/6294240/pexels-photo-6294240.jpeg?cs=srgb&dl=pexels-saveurs-secretes-7625056-6294240.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 60 } },
+        { "id": "egg-bhujia-2-pc", "name": "Egg Bhujia (2 pc)", "type": "egg", "description": "Egg Bhujia (2 pc) from the Egg section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/6294240/pexels-photo-6294240.jpeg?cs=srgb&dl=pexels-saveurs-secretes-7625056-6294240.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 80 } },
+        { "id": "egg-keema-masala", "name": "Egg Keema Masala", "type": "egg", "description": "Egg Keema Masala from the Egg section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/6294240/pexels-photo-6294240.jpeg?cs=srgb&dl=pexels-saveurs-secretes-7625056-6294240.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 130 } },
+        { "id": "egg-pouch", "name": "Egg Pouch", "type": "egg", "description": "Egg Pouch from the Egg section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/6294240/pexels-photo-6294240.jpeg?cs=srgb&dl=pexels-saveurs-secretes-7625056-6294240.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 60 } },
+        { "id": "egg-fry-rice", "name": "Egg Fry Rice", "type": "egg", "description": "Egg Fry Rice from the Egg section at Dubey's Dhaba.", "image": "https://images.pexels.com/photos/6294240/pexels-photo-6294240.jpeg?cs=srgb&dl=pexels-saveurs-secretes-7625056-6294240.jpg&fm=jpg", "pricing": { "kind": "fixed", "price": 130 } }
+      ]
+    }
+  ]
+}
