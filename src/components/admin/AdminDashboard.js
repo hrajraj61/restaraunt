@@ -944,6 +944,7 @@ export default function AdminDashboard({ initialData, sessionUser }) {
           {activeTab === "dashboard" && <OverviewTab data={data} />}
           {activeTab === "menu" && <ItemsTab items={data.items} categories={data.categories} loading={loading} onSave={saveItem} onDelete={removeItem} />}
           {activeTab === "categories" && <CategoriesTab categories={data.categories} loading={loading} onSave={saveCategory} onDelete={removeCategory} />}
+          {activeTab === "offers" && <OffersTab offers={data.offers || []} categories={data.categories} items={data.items} loading={loading} onSave={saveOffer} onDelete={removeOffer} />}
           {activeTab === "users" && <UsersTab users={data.users} loading={loading} onSave={saveUser} onDelete={removeUser} />}
         </main>
 
