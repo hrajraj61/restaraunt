@@ -213,6 +213,10 @@ export default function MenuApp() {
   const [showDeliveryConfirmModal, setShowDeliveryConfirmModal] = useState(false);
   const [deliveryLocation, setDeliveryLocation] = useState(null);
   const [isFetchingDeliveryLocation, setIsFetchingDeliveryLocation] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponResult, setCouponResult] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState("");
   
   // PWA Install functionality
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -356,6 +360,8 @@ export default function MenuApp() {
   }, [cart, allItems, categories]);
   const totalCartItems = Object.values(cart).reduce((a, b) => a + b, 0);
   const totalCartPrice = selectedDishes.reduce((sum, dish) => sum + dish.price * (cart[dish.id] || 0), 0);
+  const discountAmount = couponResult ? Math.round(totalCartPrice * couponResult.discountPercent / 100) : 0;
+  const finalPrice = totalCartPrice - discountAmount;
   const highlightedDishes = useMemo(() => allItems.filter((dish) => highlights.includes(dish.id)), [highlights, allItems]);
 
   const addToCart = useCallback((id) => {
@@ -429,6 +435,40 @@ export default function MenuApp() {
     }
   }, [deferredPrompt]);
 
+  const applyCoupon = useCallback(async () => {
+    const code = couponCode.trim();
+    if (!code) return;
+    setCouponLoading(true);
+    setCouponError("");
+    setCouponResult(null);
+    try {
+      const res = await fetch("/api/coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setCouponResult(data);
+        setCouponError("");
+      } else {
+        setCouponError(data.error || "Invalid coupon");
+        setCouponResult(null);
+      }
+    } catch {
+      setCouponError("Unable to validate coupon");
+      setCouponResult(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  }, [couponCode]);
+
+  const removeCoupon = useCallback(() => {
+    setCouponCode("");
+    setCouponResult(null);
+    setCouponError("");
+  }, []);
+
   const handleHomeDelivery = useCallback(() => {
     const number = menu?.restaurant?.phone || "6202525132";
     let message = `*${menu?.restaurant?.name || "Dubey's Dhaba"} Order*%0A%0A`;
@@ -438,10 +478,21 @@ export default function MenuApp() {
     });
 
     message += `%0A*TOTAL ITEMS:* ${totalCartItems}`;
+    if (couponResult) {
+      message += `%0A*SUBTOTAL:* Rs. ${totalCartPrice}`;
+      message += `%0A*COUPON:* ${couponResult.code} (${couponResult.discountPercent}%25 off)`;
+      message += `%0A*DISCOUNT:* -Rs. ${discountAmount}`;
+      message += `%0A*FINAL TOTAL:* Rs. ${finalPrice}`;
+    } else {
+      message += `%0A*TOTAL:* Rs. ${totalCartPrice}`;
+    }
     message += "%0A%0A*REQUEST:* I'd like to get this delivered to my home. Please confirm.";
 
     const openWhatsApp = (finalMessage) => {
       setShowDeliveryConfirmModal(false);
+      setCouponCode("");
+      setCouponResult(null);
+      setCouponError("");
       window.open(`https://wa.me/91${number}?text=${finalMessage}`, "_blank", "noopener,noreferrer");
     };
 
@@ -458,7 +509,7 @@ export default function MenuApp() {
 
     const locationMessage = `${message}%0A%0A*DELIVERY LOCATION:* https://maps.google.com/?q=${deliveryLocation.latitude},${deliveryLocation.longitude}`;
     openWhatsApp(locationMessage);
-  }, [cart, deliveryLocation, includeDeliveryLocation, selectedDishes, totalCartItems, menu]);
+  }, [cart, deliveryLocation, includeDeliveryLocation, selectedDishes, totalCartItems, totalCartPrice, discountAmount, finalPrice, couponResult, menu]);
 
   const toggleDeliveryLocation = useCallback(() => {
     if (includeDeliveryLocation) {
@@ -503,6 +554,9 @@ export default function MenuApp() {
     setIncludeDeliveryLocation(false);
     setDeliveryLocation(null);
     setIsFetchingDeliveryLocation(false);
+    setCouponCode("");
+    setCouponResult(null);
+    setCouponError("");
   }, []);
 
   const heroImage = filteredDishes[0]?.img || allItems[0]?.img || "";
@@ -851,7 +905,51 @@ export default function MenuApp() {
                   <div className="space-y-3 p-4">
                     <div className="rounded-lg bg-neutral-50 px-3 py-2.5">
                       <p className="font-body text-[10px] font-bold uppercase tracking-[0.18em] text-black/45">Order Total</p>
-                      <p className="mt-1 font-body text-sm font-semibold text-black">{totalCartItems} items • ₹{totalCartPrice}</p>
+                      {couponResult ? (
+                        <div className="mt-1">
+                          <p className="font-body text-xs text-black/40 line-through">₹{totalCartPrice}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-body text-sm font-semibold text-black">{totalCartItems} items • ₹{finalPrice}</p>
+                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-bold text-emerald-700">{couponResult.discountPercent}% off</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="mt-1 font-body text-sm font-semibold text-black">{totalCartItems} items • ₹{totalCartPrice}</p>
+                      )}
+                    </div>
+
+                    {/* Coupon Code Input */}
+                    <div className="rounded-lg border border-black/10 bg-white px-3 py-3">
+                      <p className="font-body text-[10px] font-bold uppercase tracking-[0.16em] text-black/45 mb-2">Have a coupon?</p>
+                      {couponResult ? (
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-sm font-bold text-emerald-700">{couponResult.code}</span>
+                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-bold text-emerald-700">-₹{discountAmount}</span>
+                          </div>
+                          <button onClick={removeCoupon} className="rounded-full p-1 text-black/30 hover:bg-black/5 hover:text-black/60">
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={couponCode}
+                            onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(""); }}
+                            placeholder="Enter code"
+                            className="flex-1 rounded-lg border border-black/10 bg-neutral-50 px-3 py-2 font-mono text-sm text-black outline-none placeholder:text-black/30 focus:border-black/20"
+                          />
+                          <button
+                            onClick={applyCoupon}
+                            disabled={couponLoading || !couponCode.trim()}
+                            className="rounded-lg bg-black px-4 py-2 font-body text-xs font-bold uppercase tracking-[0.14em] text-white transition-colors hover:bg-black/90 disabled:opacity-40"
+                          >
+                            {couponLoading ? "..." : "Apply"}
+                          </button>
+                        </div>
+                      )}
+                      {couponError && <p className="mt-1.5 font-body text-[11px] text-red-500">{couponError}</p>}
                     </div>
 
                     <label className="flex items-center justify-between rounded-lg border border-black/10 bg-white px-3 py-3 text-black">
