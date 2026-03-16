@@ -360,7 +360,24 @@ export default function MenuApp() {
   }, [cart, allItems, categories]);
   const totalCartItems = Object.values(cart).reduce((a, b) => a + b, 0);
   const totalCartPrice = selectedDishes.reduce((sum, dish) => sum + dish.price * (cart[dish.id] || 0), 0);
-  const discountAmount = couponResult ? Math.round(totalCartPrice * couponResult.discountPercent / 100) : 0;
+
+  const discountAmount = useMemo(() => {
+    if (!couponResult) return 0;
+    const { applyTo, targetIds, discountPercent } = couponResult;
+    let eligibleTotal = 0;
+    for (const dish of selectedDishes) {
+      const qty = cart[dish.id] || 0;
+      const itemId = dish.baseItemId || dish.id;
+      const catId = dish.categoryId;
+      let eligible = false;
+      if (applyTo === "all") eligible = true;
+      else if (applyTo === "categories") eligible = targetIds.includes(catId);
+      else if (applyTo === "items") eligible = targetIds.includes(itemId);
+      if (eligible) eligibleTotal += dish.price * qty;
+    }
+    return Math.round(eligibleTotal * discountPercent / 100);
+  }, [couponResult, selectedDishes, cart]);
+
   const finalPrice = totalCartPrice - discountAmount;
   const highlightedDishes = useMemo(() => allItems.filter((dish) => highlights.includes(dish.id)), [highlights, allItems]);
 
