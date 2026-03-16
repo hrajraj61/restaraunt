@@ -179,24 +179,6 @@ async function createSchema(db) {
     );
   `);
 
-  // Migration: rename label -> name and drop size/inches if upgrading from old schema
-  await db.query(`
-    DO $$
-    BEGIN
-      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'menu_item_variants' AND column_name = 'label') THEN
-        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'menu_item_variants' AND column_name = 'name') THEN
-          ALTER TABLE menu_item_variants RENAME COLUMN label TO name;
-        END IF;
-      END IF;
-      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'menu_item_variants' AND column_name = 'size') THEN
-        ALTER TABLE menu_item_variants DROP COLUMN size;
-      END IF;
-      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'menu_item_variants' AND column_name = 'inches') THEN
-        ALTER TABLE menu_item_variants DROP COLUMN inches;
-      END IF;
-    END
-    $$;
-  `);
 }
 
 async function seedInitialData(db) {
@@ -267,12 +249,33 @@ async function seedInitialData(db) {
   }
 }
 
+async function migrateVariantsSchema() {
+  await query(`
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'menu_item_variants' AND column_name = 'label') THEN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'menu_item_variants' AND column_name = 'name') THEN
+          ALTER TABLE menu_item_variants RENAME COLUMN label TO name;
+        END IF;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'menu_item_variants' AND column_name = 'size') THEN
+        ALTER TABLE menu_item_variants DROP COLUMN size;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'menu_item_variants' AND column_name = 'inches') THEN
+        ALTER TABLE menu_item_variants DROP COLUMN inches;
+      END IF;
+    END
+    $$;
+  `);
+}
+
 export async function ensureSchemaAndSeed() {
   const categoriesExist = await tableExists("menu_categories");
   const itemsExist = await tableExists("menu_items");
   const usersExist = await tableExists("admin_users");
 
   if (categoriesExist && itemsExist && usersExist) {
+    await migrateVariantsSchema();
     return { seeded: false };
   }
 
