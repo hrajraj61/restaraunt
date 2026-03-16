@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   LayoutDashboard,
   UtensilsCrossed,
@@ -21,6 +21,10 @@ import {
   Edit3,
   LogOut,
   RefreshCw,
+  Percent,
+  TicketPercent,
+  Check,
+  Copy,
 } from "lucide-react";
 
 /* ══════════════════════════════════════════
@@ -74,7 +78,7 @@ function Btn({ variant = "primary", icon: Icon, children, className = "", ...pro
 
 function Card({ children, className = "" }) {
   return (
-    <div className={`rounded-3xl border border-stone-100 bg-white shadow-sm ${className}`}>
+    <div className={`rounded-2xl border border-stone-100 bg-white shadow-sm ${className}`}>
       {children}
     </div>
   );
@@ -87,6 +91,24 @@ function EmptyState({ message }) {
         <Package size={24} className="text-stone-300" />
       </div>
       <p className="text-sm text-stone-400 font-medium">{message}</p>
+    </div>
+  );
+}
+
+/* ── Confirm Dialog ── */
+function ConfirmDialog({ open, title, message, onConfirm, onCancel, loading }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative bg-white rounded-2xl shadow-2xl p-5 w-full max-w-sm">
+        <h3 className="text-sm font-bold text-stone-900 mb-1">{title || "Confirm Delete"}</h3>
+        <p className="text-xs text-stone-500 mb-4">{message || "Are you sure? This action cannot be undone."}</p>
+        <div className="flex gap-2">
+          <button onClick={onCancel} className="flex-1 px-4 py-2 rounded-xl border border-stone-200 text-sm font-bold text-stone-600 hover:bg-stone-50 transition">Cancel</button>
+          <button onClick={onConfirm} disabled={loading} className="flex-1 px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition disabled:opacity-50">Delete</button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -136,29 +158,30 @@ function OverviewTab({ data }) {
     { label: "Categories", value: data.stats.categories, icon: Tag },
     { label: "Menu Items", value: data.stats.items, icon: UtensilsCrossed },
     { label: "Admins", value: data.stats.users, icon: Users },
+    { label: "Offers", value: data.offers?.length || 0, icon: TicketPercent },
   ];
 
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 lg:gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 lg:gap-4">
         {stats.map((stat, i) => (
-          <div key={i} className={`p-4 lg:p-8 rounded-3xl bg-white border border-stone-100 shadow-sm hover:shadow-md transition-all ${i === 2 ? "col-span-2 md:col-span-1" : ""}`}>
-            <div className="flex justify-between items-start mb-3 lg:mb-6">
-              <div className="p-2 lg:p-3 rounded-xl bg-stone-50 text-stone-400">
-                <stat.icon size={18} className="lg:hidden" />
-                <stat.icon size={24} className="hidden lg:block" />
+          <div key={i} className="p-3 lg:p-5 rounded-2xl bg-white border border-stone-100 shadow-sm hover:shadow-md transition-all">
+            <div className="flex justify-between items-start mb-2 lg:mb-4">
+              <div className="p-1.5 lg:p-2 rounded-xl bg-stone-50 text-stone-400">
+                <stat.icon size={16} className="lg:hidden" />
+                <stat.icon size={20} className="hidden lg:block" />
               </div>
             </div>
-            <p className="text-stone-400 font-bold text-[10px] lg:text-xs uppercase tracking-widest mb-1">{stat.label}</p>
-            <p className="text-xl lg:text-3xl font-bold tracking-tight text-stone-900">{stat.value}</p>
+            <p className="text-stone-400 font-bold text-[10px] uppercase tracking-widest mb-0.5">{stat.label}</p>
+            <p className="text-lg lg:text-2xl font-bold tracking-tight text-stone-900">{stat.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-        <div className="lg:col-span-2 space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+        <div className="lg:col-span-2 space-y-3">
           <div className="flex justify-between items-center px-1">
-            <h2 className="text-sm lg:text-lg font-bold">Menu Categories</h2>
+            <h2 className="text-sm lg:text-base font-bold">Menu Categories</h2>
           </div>
           <Card>
             <div className="overflow-x-auto">
@@ -166,21 +189,21 @@ function OverviewTab({ data }) {
                 <tbody className="divide-y divide-stone-50">
                   {data.categories.map((cat) => (
                     <tr key={cat.id} className="group hover:bg-stone-50/50 transition-colors">
-                      <td className="px-5 py-4 lg:px-6 lg:py-5">
+                      <td className="px-4 py-3 lg:px-5 lg:py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-[10px] font-bold text-stone-500">
+                          <div className="w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center text-[9px] font-bold text-stone-500">
                             {cat.name.substring(0, 2).toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-bold text-xs lg:text-sm leading-none">{cat.name}</p>
-                            <p className="text-[10px] text-stone-400 mt-1">{cat.type} · {cat.itemCount} items</p>
+                            <p className="font-bold text-xs leading-none">{cat.name}</p>
+                            <p className="text-[10px] text-stone-400 mt-0.5">{cat.type} · {cat.itemCount} items</p>
                           </div>
                         </div>
                       </td>
-                      <td className="hidden md:table-cell px-6 py-5">
+                      <td className="hidden md:table-cell px-5 py-3.5">
                         <span className="px-2 py-0.5 rounded-full bg-stone-50 text-stone-500 text-[10px] font-bold uppercase tracking-wider">{cat.type}</span>
                       </td>
-                      <td className="px-5 py-4 lg:px-6 lg:py-5 text-right">
+                      <td className="px-4 py-3 lg:px-5 lg:py-3.5 text-right">
                         <span className="text-xs font-bold text-stone-900">{cat.itemCount}</span>
                       </td>
                     </tr>
@@ -191,13 +214,13 @@ function OverviewTab({ data }) {
           </Card>
         </div>
 
-        <div className="space-y-4">
-          <h2 className="text-sm lg:text-lg font-bold px-1">Restaurant</h2>
-          <div className="p-5 lg:p-8 rounded-[2rem] bg-stone-900 text-white shadow-xl shadow-stone-200 relative overflow-hidden">
-            <TrendingUp className="absolute top-[-20%] right-[-10%] opacity-10" size={140} />
-            <p className="text-stone-500 text-[10px] font-bold uppercase tracking-widest mb-2">Venue</p>
-            <h3 className="text-xl lg:text-2xl font-bold mb-4">{data.restaurant.name}</h3>
-            <div className="space-y-2 text-[10px] font-bold text-stone-400">
+        <div className="space-y-3">
+          <h2 className="text-sm lg:text-base font-bold px-1">Restaurant</h2>
+          <div className="p-4 lg:p-6 rounded-2xl bg-stone-900 text-white shadow-xl shadow-stone-200 relative overflow-hidden">
+            <TrendingUp className="absolute top-[-20%] right-[-10%] opacity-10" size={120} />
+            <p className="text-stone-500 text-[10px] font-bold uppercase tracking-widest mb-1.5">Venue</p>
+            <h3 className="text-lg lg:text-xl font-bold mb-3">{data.restaurant.name}</h3>
+            <div className="space-y-1.5 text-[10px] font-bold text-stone-400">
               {data.restaurant.address && <p>{data.restaurant.address}</p>}
               {data.restaurant.phone && <p>Phone: {data.restaurant.phone}</p>}
               <p>Currency: {data.restaurant.currency || "INR"}</p>
@@ -234,23 +257,23 @@ function CategoriesTab({ categories, loading, onSave, onDelete }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex gap-2 items-center">
         <div className="flex-1">
           <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{categories.length} Categories</p>
         </div>
-        <button onClick={() => { resetForm(); setShowForm(true); }} className="hidden md:flex items-center gap-2 px-6 py-2.5 bg-stone-900 text-white rounded-xl font-bold text-sm shadow-lg shadow-stone-200">
+        <button onClick={() => { resetForm(); setShowForm(true); }} className="hidden md:flex items-center gap-2 px-5 py-2 bg-stone-900 text-white rounded-xl font-bold text-sm shadow-lg shadow-stone-200">
           <Plus size={16} /> Create New
         </button>
       </div>
 
       {showForm && (
         <Card>
-          <div className="border-b border-stone-100 px-5 py-4 flex justify-between items-center">
+          <div className="border-b border-stone-100 px-4 py-3 flex justify-between items-center">
             <h3 className="text-sm font-bold text-stone-900">{editing ? "Edit Category" : "New Category"}</h3>
             <button onClick={resetForm} className="p-1.5 rounded-lg hover:bg-stone-50"><X size={16} className="text-stone-400" /></button>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-3 p-5">
+          <form onSubmit={handleSubmit} className="space-y-3 p-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <Input label="Category ID (optional)" value={form.id} onChange={(e) => setForm(f => ({ ...f, id: e.target.value }))} placeholder="auto-generated" disabled={!!editing} />
               <Input label="Name" value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Category name" required />
@@ -272,14 +295,14 @@ function CategoriesTab({ categories, loading, onSave, onDelete }) {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-2">
         {categories.length === 0 ? (
           <Card><EmptyState message="No categories yet" /></Card>
         ) : (
           categories.map((cat) => (
-            <div key={cat.id} className="bg-white rounded-2xl border border-stone-100 p-3 lg:p-5 flex group hover:shadow-lg transition-all duration-300">
-              <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-stone-50 flex-shrink-0 flex items-center justify-center text-stone-300 mr-4">
-                <Tag size={20} />
+            <div key={cat.id} className="bg-white rounded-xl border border-stone-100 p-2.5 lg:p-4 flex group hover:shadow-md transition-all duration-300">
+              <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-stone-50 flex-shrink-0 flex items-center justify-center text-stone-300 mr-3">
+                <Tag size={18} />
               </div>
               <div className="flex-1 flex flex-col justify-center min-w-0">
                 <div className="flex justify-between items-start mb-0.5">
@@ -299,8 +322,8 @@ function CategoriesTab({ categories, loading, onSave, onDelete }) {
         )}
       </div>
 
-      <button onClick={() => { resetForm(); setShowForm(true); }} className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-stone-900 rounded-2xl shadow-xl shadow-stone-300 flex items-center justify-center text-white z-[60]">
-        <Plus size={24} />
+      <button onClick={() => { resetForm(); setShowForm(true); }} className="md:hidden fixed bottom-20 right-5 w-12 h-12 bg-stone-900 rounded-2xl shadow-xl shadow-stone-300 flex items-center justify-center text-white z-[60]">
+        <Plus size={22} />
       </button>
     </div>
   );
@@ -351,24 +374,24 @@ function ItemsTab({ items, categories, loading, onSave, onDelete }) {
     : items;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex gap-2 items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" size={16} />
-          <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search items..." className="w-full bg-white border border-stone-200 rounded-xl py-2.5 pl-10 pr-4 text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-stone-100" />
+          <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search items..." className="w-full bg-white border border-stone-200 rounded-xl py-2 pl-10 pr-4 text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-stone-100" />
         </div>
-        <button onClick={() => { resetForm(); setShowForm(true); }} className="hidden md:flex items-center gap-2 px-6 py-2.5 bg-stone-900 text-white rounded-xl font-bold text-sm shadow-lg shadow-stone-200">
+        <button onClick={() => { resetForm(); setShowForm(true); }} className="hidden md:flex items-center gap-2 px-5 py-2 bg-stone-900 text-white rounded-xl font-bold text-sm shadow-lg shadow-stone-200">
           <Plus size={16} /> Create New
         </button>
       </div>
 
       {showForm && (
         <Card>
-          <div className="border-b border-stone-100 px-5 py-4 flex justify-between items-center">
+          <div className="border-b border-stone-100 px-4 py-3 flex justify-between items-center">
             <h3 className="text-sm font-bold text-stone-900">{editing ? "Edit Item" : "New Item"}</h3>
             <button onClick={resetForm} className="p-1.5 rounded-lg hover:bg-stone-50"><X size={16} className="text-stone-400" /></button>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-3 p-5">
+          <form onSubmit={handleSubmit} className="space-y-3 p-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <Input label="Item ID (optional)" value={form.id} onChange={(e) => setForm(f => ({ ...f, id: e.target.value }))} placeholder="auto-generated" disabled={!!editing} />
               <Select label="Category" value={form.categoryId} onChange={(e) => setForm(f => ({ ...f, categoryId: e.target.value }))}>
@@ -406,13 +429,13 @@ function ItemsTab({ items, categories, loading, onSave, onDelete }) {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-3">
         {filtered.length === 0 ? (
           <div className="col-span-full"><Card><EmptyState message={searchQuery ? "No items match your search" : "No menu items yet"} /></Card></div>
         ) : (
           filtered.map((item) => (
-            <div key={item.id} className="bg-white rounded-2xl lg:rounded-[2rem] border border-stone-100 p-3 lg:p-5 flex lg:flex-col group hover:shadow-lg transition-all duration-300">
-              <div className="w-14 h-14 lg:w-full lg:h-20 rounded-xl lg:rounded-2xl bg-stone-50 flex-shrink-0 flex items-center justify-center text-stone-200 mb-0 lg:mb-4 mr-3 lg:mr-0 overflow-hidden relative">
+            <div key={item.id} className="bg-white rounded-xl lg:rounded-2xl border border-stone-100 p-2.5 lg:p-4 flex lg:flex-col group hover:shadow-md transition-all duration-300">
+              <div className="w-12 h-12 lg:w-full lg:h-16 rounded-xl lg:rounded-xl bg-stone-50 flex-shrink-0 flex items-center justify-center text-stone-200 mb-0 lg:mb-3 mr-2.5 lg:mr-0 overflow-hidden relative">
                 {item.imageUrl ? (
                   <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                 ) : (
@@ -446,9 +469,9 @@ function ItemsTab({ items, categories, loading, onSave, onDelete }) {
                 </div>
                 {item.description && <p className="text-[10px] text-stone-400 mt-1 line-clamp-1 hidden lg:block">{item.description}</p>}
 
-                <div className="hidden lg:flex gap-2 mt-3">
-                  <button onClick={() => startEdit(item)} className="flex-1 py-2 rounded-xl bg-stone-900 text-white text-[10px] font-bold hover:opacity-90 transition">Edit Item</button>
-                  <button onClick={() => onDelete(item.id)} className="p-2 rounded-xl border border-stone-100 hover:bg-red-50 hover:text-red-500 text-stone-400 transition"><Trash2 size={14} /></button>
+                <div className="hidden lg:flex gap-2 mt-2">
+                  <button onClick={() => startEdit(item)} className="flex-1 py-1.5 rounded-xl bg-stone-900 text-white text-[10px] font-bold hover:opacity-90 transition">Edit Item</button>
+                  <button onClick={() => onDelete(item.id)} className="p-1.5 rounded-xl border border-stone-100 hover:bg-red-50 hover:text-red-500 text-stone-400 transition"><Trash2 size={14} /></button>
                 </div>
               </div>
 
@@ -461,8 +484,8 @@ function ItemsTab({ items, categories, loading, onSave, onDelete }) {
         )}
       </div>
 
-      <button onClick={() => { resetForm(); setShowForm(true); }} className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-stone-900 rounded-2xl shadow-xl shadow-stone-300 flex items-center justify-center text-white z-[60]">
-        <Plus size={24} />
+      <button onClick={() => { resetForm(); setShowForm(true); }} className="md:hidden fixed bottom-20 right-5 w-12 h-12 bg-stone-900 rounded-2xl shadow-xl shadow-stone-300 flex items-center justify-center text-white z-[60]">
+        <Plus size={22} />
       </button>
     </div>
   );
@@ -493,23 +516,23 @@ function UsersTab({ users, loading, onSave, onDelete }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex gap-2 items-center">
         <div className="flex-1">
           <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{users.length} Admin Users</p>
         </div>
-        <button onClick={() => { resetForm(); setShowForm(true); }} className="hidden md:flex items-center gap-2 px-6 py-2.5 bg-stone-900 text-white rounded-xl font-bold text-sm shadow-lg shadow-stone-200">
+        <button onClick={() => { resetForm(); setShowForm(true); }} className="hidden md:flex items-center gap-2 px-5 py-2 bg-stone-900 text-white rounded-xl font-bold text-sm shadow-lg shadow-stone-200">
           <Plus size={16} /> Add User
         </button>
       </div>
 
       {showForm && (
         <Card>
-          <div className="border-b border-stone-100 px-5 py-4 flex justify-between items-center">
+          <div className="border-b border-stone-100 px-4 py-3 flex justify-between items-center">
             <h3 className="text-sm font-bold text-stone-900">{editing ? "Edit User" : "New User"}</h3>
             <button onClick={resetForm} className="p-1.5 rounded-lg hover:bg-stone-50"><X size={16} className="text-stone-400" /></button>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-3 p-5">
+          <form onSubmit={handleSubmit} className="space-y-3 p-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <Input label="Username" value={form.username} onChange={(e) => setForm(f => ({ ...f, username: e.target.value }))} placeholder="Username" required />
               <Input label={editing ? "New Password (optional)" : "Password"} type="password" value={form.password} onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))} placeholder="Password" required={!editing} />
@@ -563,8 +586,182 @@ function UsersTab({ users, loading, onSave, onDelete }) {
         </Card>
       )}
 
-      <button onClick={() => { resetForm(); setShowForm(true); }} className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-stone-900 rounded-2xl shadow-xl shadow-stone-300 flex items-center justify-center text-white z-[60]">
-        <Plus size={24} />
+      <button onClick={() => { resetForm(); setShowForm(true); }} className="md:hidden fixed bottom-20 right-5 w-12 h-12 bg-stone-900 rounded-2xl shadow-xl shadow-stone-300 flex items-center justify-center text-white z-[60]">
+        <Plus size={22} />
+      </button>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════
+   OFFERS / PROMOTIONS TAB
+   ══════════════════════════════════════════ */
+function OffersTab({ offers, categories, items, loading, onSave, onDelete }) {
+  const [editing, setEditing] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(null);
+  const [form, setForm] = useState({
+    code: "", title: "", discountPercent: "", applyTo: "all", targetIds: [], isActive: true, validFrom: "", validUntil: "",
+  });
+
+  function startEdit(offer) {
+    setEditing(String(offer.id));
+    setForm({
+      code: offer.code, title: offer.title, discountPercent: offer.discountPercent,
+      applyTo: offer.applyTo, targetIds: offer.targetIds || [], isActive: offer.isActive,
+      validFrom: offer.validFrom ? new Date(offer.validFrom).toISOString().slice(0, 16) : "",
+      validUntil: offer.validUntil ? new Date(offer.validUntil).toISOString().slice(0, 16) : "",
+    });
+    setShowForm(true);
+  }
+  function resetForm() {
+    setEditing(null); setShowForm(false);
+    setForm({ code: "", title: "", discountPercent: "", applyTo: "all", targetIds: [], isActive: true, validFrom: "", validUntil: "" });
+  }
+  async function handleSubmit(e) {
+    e.preventDefault();
+    await onSave({
+      ...form,
+      discountPercent: Number(form.discountPercent),
+      validFrom: form.validFrom || null,
+      validUntil: form.validUntil || null,
+    }, editing);
+    resetForm();
+  }
+  function toggleTarget(id) {
+    setForm(f => ({
+      ...f,
+      targetIds: f.targetIds.includes(id) ? f.targetIds.filter(t => t !== id) : [...f.targetIds, id],
+    }));
+  }
+  function copyCode(code) {
+    navigator.clipboard?.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 1500);
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2 items-center">
+        <div className="flex-1">
+          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{offers.length} Offers</p>
+        </div>
+        <button onClick={() => { resetForm(); setShowForm(true); }} className="hidden md:flex items-center gap-2 px-5 py-2 bg-stone-900 text-white rounded-xl font-bold text-sm shadow-lg shadow-stone-200">
+          <Plus size={16} /> Create Offer
+        </button>
+      </div>
+
+      {showForm && (
+        <Card>
+          <div className="border-b border-stone-100 px-4 py-3 flex justify-between items-center">
+            <h3 className="text-sm font-bold text-stone-900">{editing ? "Edit Offer" : "New Offer"}</h3>
+            <button onClick={resetForm} className="p-1.5 rounded-lg hover:bg-stone-50"><X size={16} className="text-stone-400" /></button>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-3 p-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input label="Coupon Code" value={form.code} onChange={(e) => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))} placeholder="e.g. WELCOME20" required />
+              <Input label="Title (optional)" value={form.title} onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Welcome offer" />
+            </div>
+            <div className="grid gap-3 grid-cols-3">
+              <Input label="Discount %" type="number" min="1" max="100" value={form.discountPercent} onChange={(e) => setForm(f => ({ ...f, discountPercent: e.target.value }))} placeholder="10" required />
+              <Select label="Apply To" value={form.applyTo} onChange={(e) => setForm(f => ({ ...f, applyTo: e.target.value, targetIds: [] }))}>
+                <option value="all">All Items</option>
+                <option value="categories">Categories</option>
+                <option value="items">Specific Items</option>
+              </Select>
+              <Select label="Status" value={form.isActive ? "active" : "inactive"} onChange={(e) => setForm(f => ({ ...f, isActive: e.target.value === "active" }))}>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </Select>
+            </div>
+
+            {form.applyTo === "categories" && (
+              <div>
+                <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">Select Categories</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {categories.map(cat => (
+                    <button key={cat.id} type="button" onClick={() => toggleTarget(cat.id)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${form.targetIds.includes(cat.id) ? "bg-stone-900 text-white" : "bg-stone-50 text-stone-500 hover:bg-stone-100"}`}>
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {form.applyTo === "items" && (
+              <div>
+                <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-stone-400">Select Items</span>
+                <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                  {items.map(item => (
+                    <button key={item.id} type="button" onClick={() => toggleTarget(item.id)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${form.targetIds.includes(item.id) ? "bg-stone-900 text-white" : "bg-stone-50 text-stone-500 hover:bg-stone-100"}`}>
+                      {item.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input label="Valid From (optional)" type="datetime-local" value={form.validFrom} onChange={(e) => setForm(f => ({ ...f, validFrom: e.target.value }))} />
+              <Input label="Valid Until (optional)" type="datetime-local" value={form.validUntil} onChange={(e) => setForm(f => ({ ...f, validUntil: e.target.value }))} />
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Btn type="submit" disabled={loading} icon={Save} className="flex-1">{editing ? "Update" : "Create Offer"}</Btn>
+              <Btn type="button" variant="secondary" onClick={resetForm}>Cancel</Btn>
+            </div>
+          </form>
+        </Card>
+      )}
+
+      {offers.length === 0 ? (
+        <Card><EmptyState message="No offers yet" /></Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {offers.map((offer) => (
+            <div key={offer.id} className="bg-white rounded-xl border border-stone-100 p-3 lg:p-4 group hover:shadow-md transition-all">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${offer.isActive ? "bg-emerald-50 text-emerald-600" : "bg-stone-100 text-stone-400"}`}>
+                    <Percent size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <button onClick={() => copyCode(offer.code)} className="font-mono text-sm font-bold text-stone-900 hover:text-stone-600 transition flex items-center gap-1" title="Copy code">
+                        {offer.code}
+                        {copiedCode === offer.code ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} className="text-stone-300" />}
+                      </button>
+                    </div>
+                    {offer.title && <p className="text-[10px] text-stone-400 truncate">{offer.title}</p>}
+                  </div>
+                </div>
+                <span className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest flex-shrink-0 ${offer.isActive ? "bg-emerald-50 text-emerald-600" : "bg-stone-100 text-stone-400"}`}>
+                  {offer.isActive ? "Active" : "Inactive"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap mb-2">
+                <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold">{offer.discountPercent}% off</span>
+                <span className="px-2 py-0.5 rounded-full bg-stone-50 text-stone-500 text-[10px] font-bold">
+                  {offer.applyTo === "all" ? "All items" : offer.applyTo === "categories" ? `${offer.targetIds.length} categories` : `${offer.targetIds.length} items`}
+                </span>
+                {offer.validUntil && (
+                  <span className="text-[10px] text-stone-400">
+                    Until {new Date(offer.validUntil).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-1">
+                <button onClick={() => startEdit(offer)} className="p-1.5 rounded-lg hover:bg-stone-50 text-stone-400 hover:text-stone-700 transition"><Edit3 size={13} /></button>
+                <button onClick={() => onDelete(offer.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-stone-300 hover:text-red-500 transition"><Trash2 size={13} /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button onClick={() => { resetForm(); setShowForm(true); }} className="md:hidden fixed bottom-20 right-5 w-12 h-12 bg-stone-900 rounded-2xl shadow-xl shadow-stone-300 flex items-center justify-center text-white z-[60]">
+        <Plus size={22} />
       </button>
     </div>
   );
@@ -577,6 +774,7 @@ const NAV = [
   { id: "dashboard", label: "Overview", icon: LayoutDashboard },
   { id: "menu", label: "Menu Library", icon: UtensilsCrossed },
   { id: "categories", label: "Categories", icon: Tag },
+  { id: "offers", label: "Promotions", icon: TicketPercent },
   { id: "users", label: "Admins", icon: Users },
 ];
 
@@ -587,6 +785,7 @@ export default function AdminDashboard({ initialData, sessionUser }) {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   async function refreshData(successMessage) {
     const response = await fetch("/api/admin/bootstrap", { cache: "no-store" });
@@ -617,19 +816,38 @@ export default function AdminDashboard({ initialData, sessionUser }) {
     const url = editingId ? `/api/admin/categories/${editingId}` : "/api/admin/categories";
     await submitRequest(url, { method: editingId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: form.id, name: form.name, type: form.type, sortOrder: Number(form.sortOrder || 0) }) }, editingId ? "Category updated" : "Category created");
   }
-  async function removeCategory(id) { await submitRequest(`/api/admin/categories/${id}`, { method: "DELETE" }, "Category removed"); }
+  function removeCategory(id) {
+    setConfirmDelete({ title: "Delete Category", message: "This will delete the category and all its items. Continue?", action: () => submitRequest(`/api/admin/categories/${id}`, { method: "DELETE" }, "Category removed") });
+  }
 
   async function saveItem(form, editingId) {
     const url = editingId ? `/api/admin/items/${editingId}` : "/api/admin/items";
     await submitRequest(url, { method: editingId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: form.id, categoryId: form.categoryId, name: form.name, type: form.type, description: form.description, imageUrl: form.imageUrl, sortOrder: Number(form.sortOrder || 0), pricing: form.pricing }) }, editingId ? "Item updated" : "Item created");
   }
-  async function removeItem(id) { await submitRequest(`/api/admin/items/${id}`, { method: "DELETE" }, "Item removed"); }
+  function removeItem(id) {
+    setConfirmDelete({ title: "Delete Item", message: "Are you sure you want to delete this menu item?", action: () => submitRequest(`/api/admin/items/${id}`, { method: "DELETE" }, "Item removed") });
+  }
 
   async function saveUser(form, editingId) {
     const url = editingId ? `/api/admin/users/${editingId}` : "/api/admin/users";
     await submitRequest(url, { method: editingId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) }, editingId ? "User updated" : "User created");
   }
-  async function removeUser(id) { await submitRequest(`/api/admin/users/${id}`, { method: "DELETE" }, "User removed"); }
+  function removeUser(id) {
+    setConfirmDelete({ title: "Delete User", message: "Are you sure you want to remove this admin user?", action: () => submitRequest(`/api/admin/users/${id}`, { method: "DELETE" }, "User removed") });
+  }
+
+  async function saveOffer(form, editingId) {
+    const url = editingId ? `/api/admin/offers/${editingId}` : "/api/admin/offers";
+    await submitRequest(url, { method: editingId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) }, editingId ? "Offer updated" : "Offer created");
+  }
+  function removeOffer(id) {
+    setConfirmDelete({ title: "Delete Offer", message: "Are you sure you want to delete this offer?", action: () => submitRequest(`/api/admin/offers/${id}`, { method: "DELETE" }, "Offer removed") });
+  }
+
+  async function handleConfirmDelete() {
+    if (confirmDelete?.action) await confirmDelete.action();
+    setConfirmDelete(null);
+  }
 
   function switchTab(id) { setActiveTab(id); setMessage(""); setError(""); setIsSidebarOpen(false); }
 
@@ -745,6 +963,16 @@ export default function AdminDashboard({ initialData, sessionUser }) {
       </nav>
 
       {/* ── Mobile Sidebar Drawer ── */}
+      {/* ── Confirm Delete Dialog ── */}
+      <ConfirmDialog
+        open={!!confirmDelete}
+        title={confirmDelete?.title}
+        message={confirmDelete?.message}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmDelete(null)}
+        loading={loading}
+      />
+
       {isSidebarOpen && (
         <div className="fixed inset-0 z-[100] lg:hidden">
           <div className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />

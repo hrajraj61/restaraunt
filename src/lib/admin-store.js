@@ -179,6 +179,22 @@ async function createSchema(db) {
     );
   `);
 
+  await db.query(`
+    create table if not exists offers (
+      id bigserial primary key,
+      code text not null unique,
+      title text not null default '',
+      discount_percent numeric(5,2) not null default 0,
+      apply_to text not null default 'all',
+      target_ids text[] not null default '{}',
+      is_active boolean not null default true,
+      valid_from timestamptz,
+      valid_until timestamptz,
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now()
+    );
+  `);
+
 }
 
 async function seedInitialData(db) {
@@ -276,6 +292,7 @@ export async function ensureSchemaAndSeed() {
 
   if (categoriesExist && itemsExist && usersExist) {
     await migrateVariantsSchema();
+    await migrateOffersTable();
     return { seeded: false };
   }
 
@@ -426,7 +443,7 @@ export function clearSessionCookie() {
 
 export async function getDashboardSnapshot() {
   await ensureSchemaAndSeed();
-  const [restaurant, categories, items, users, variants] = await Promise.all([
+  const [restaurant, categories, items, users, variants, offers] = await Promise.all([
     getRestaurant(),
     query(
       `
@@ -459,7 +476,12 @@ export async function getDashboardSnapshot() {
         from menu_item_variants
         order by item_id asc, sort_order asc, name asc
       `
-    )
+    ),
+    (async () => {
+      const exists = await tableExists("offers");
+      if (!exists) return { rows: [] };
+      return query("select id, code, title, discount_percent, apply_to, target_ids, is_active, valid_from, valid_until, created_at from offers order by created_at desc");
+    })()
   ]);
 
   const variantsByItem = new Map();
@@ -506,6 +528,18 @@ export async function getDashboardSnapshot() {
       role: row.role,
       isActive: row.is_active,
       createdAt: row.created_at
+    })),
+    offers: offers.rows.map((r) => ({
+      id: r.id,
+      code: r.code,
+      title: r.title,
+      discountPercent: Number(r.discount_percent),
+      applyTo: r.apply_to,
+      targetIds: r.target_ids || [],
+      isActive: r.is_active,
+      validFrom: r.valid_from,
+      validUntil: r.valid_until,
+      createdAt: r.created_at,
     }))
   };
 }
@@ -708,6 +742,116 @@ export async function updateUser(id, input) {
 export async function deleteUser(id) {
   await ensureSchemaAndSeed();
   await query("delete from admin_users where id = $1 and username <> $2", [id, DEFAULT_SUPER_ADMIN.username]);
+}
+
+/* ── Offers migration (for existing DBs) ── */
+async function migrateOffersTable() {
+  const exists = await tableExists("offers");
+  if (exists) return;
+  await query(`
+    create table if not exists offers (
+      id bigserial primary key,
+      code text not null unique,
+      title text not null default '',
+      discount_percent numeric(5,2) not null default 0,
+      apply_to text not null default 'all',
+      target_ids text[] not null default '{}',
+      is_active boolean not null default true,
+      valid_from timestamptz,
+      valid_until timestamptz,
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now()
+    );
+  `);
+}
+
+/* ── Offers CRUD ── */
+export async function getOffers() {
+  await ensureSchemaAndSeed();
+  const result = await query(
+    "select id, code, title, discount_percent, apply_to, target_ids, is_active, valid_from, valid_until, created_at from offers order by created_at desc"
+  );
+  return result.rows.map((r) => ({
+    id: r.id,
+    code: r.code,
+    title: r.title,
+    discountPercent: Number(r.discount_percent),
+    applyTo: r.apply_to,
+    targetIds: r.target_ids || [],
+    isActive: r.is_active,
+    validFrom: r.valid_from,
+    validUntil: r.valid_until,
+    createdAt: r.created_at,
+  }));
+}
+
+export async function createOffer(input) {
+  await ensureSchemaAndSeed();
+  if (!input.code?.trim()) throw new Error("Coupon code is required.");
+  if (!input.discountPercent || Number(input.discountPercent) <= 0 || Number(input.discountPercent) > 100) {
+    throw new Error("Discount must be between 1 and 100.");
+  }
+  const result = await query(
+    `insert into offers (code, title, discount_percent, apply_to, target_ids, is_active, valid_from, valid_until)
+     values ($1, $2, $3, $4, $5, $6, $7, $8) returning id`,
+    [
+      input.code.trim().toUpperCase(),
+      input.title?.trim() || "",
+      Number(input.discountPercent),
+      input.applyTo || "all",
+      input.targetIds || [],
+      input.isActive !== false,
+      input.validFrom || null,
+      input.validUntil || null,
+    ]
+  );
+  return result.rows[0];
+}
+
+export async function updateOffer(id, input) {
+  await ensureSchemaAndSeed();
+  await query(
+    `update offers set code=$2, title=$3, discount_percent=$4, apply_to=$5, target_ids=$6, is_active=$7, valid_from=$8, valid_until=$9, updated_at=now() where id=$1`,
+    [
+      id,
+      input.code?.trim().toUpperCase(),
+      input.title?.trim() || "",
+      Number(input.discountPercent),
+      input.applyTo || "all",
+      input.targetIds || [],
+      input.isActive !== false,
+      input.validFrom || null,
+      input.validUntil || null,
+    ]
+  );
+}
+
+export async function deleteOffer(id) {
+  await ensureSchemaAndSeed();
+  await query("delete from offers where id = $1", [id]);
+}
+
+export async function validateCoupon(code) {
+  await ensureSchemaAndSeed();
+  const result = await query(
+    `select id, code, title, discount_percent, apply_to, target_ids, is_active, valid_from, valid_until
+     from offers where upper(code) = upper($1) limit 1`,
+    [code]
+  );
+  const offer = result.rows[0];
+  if (!offer) return { valid: false, error: "Invalid coupon code." };
+  if (!offer.is_active) return { valid: false, error: "This coupon is no longer active." };
+  const now = new Date();
+  if (offer.valid_from && new Date(offer.valid_from) > now) return { valid: false, error: "This coupon is not yet valid." };
+  if (offer.valid_until && new Date(offer.valid_until) < now) return { valid: false, error: "This coupon has expired." };
+  return {
+    valid: true,
+    code: offer.code,
+    title: offer.title,
+    discountPercent: Number(offer.discount_percent),
+    applyTo: offer.apply_to,
+    targetIds: offer.target_ids || [],
+  };
 }
 
 export function parseVariantsText(rawValue) {
