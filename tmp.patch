@@ -1,0 +1,5 @@
+*** Begin Patch 
+*** Update File: src/lib/admin-store.js 
+@@ 
+-function normalizePricing(input = {}) { 
+-  if (input.kind === " "variant) {

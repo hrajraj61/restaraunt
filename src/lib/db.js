@@ -38,3 +38,30 @@ export async function withTransaction(callback) {
     client.release();
   }
 }
+
+/**
+ * Safe parameterized update: builds SET clause from an allowlist of columns.
+ * Only columns present in `values` AND in `allowedColumns` are updated.
+ * Returns the query result or null if nothing to update.
+ */
+export async function safeUpdate(table, id, values, allowedColumns, db = { query }) {
+  const sets = [];
+  const params = [];
+  let idx = 1;
+
+  for (const col of allowedColumns) {
+    if (col in values) {
+      sets.push(`${col} = $${idx}`);
+      params.push(values[col]);
+      idx++;
+    }
+  }
+
+  if (sets.length === 0) return null;
+
+  sets.push(`updated_at = now()`);
+  params.push(id);
+
+  const sql = `UPDATE ${table} SET ${sets.join(", ")} WHERE id = $${idx}`;
+  return db.query(sql, params);
+}

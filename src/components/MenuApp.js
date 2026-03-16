@@ -760,7 +760,7 @@ export default function MenuApp() {
                                   <span className="truncate font-body text-sm font-semibold text-black">{dish.name}</span>
                                   {dish.hasVariants && dish.variant && (
                                     <div className="flex items-center gap-1 mt-0.5">
-                                      <span className="font-body text-xs text-black/60">{dish.variant.label}</span>
+                                      <span className="font-body text-xs text-black/60">{dish.variant.name}</span>
                                     </div>
                                   )}
                                 </div>
@@ -941,8 +941,7 @@ export default function MenuApp() {
                           className="w-full flex items-center justify-between rounded-lg border border-black/10 bg-white p-3 text-left hover:bg-neutral-50 transition-colors"
                         >
                           <div>
-                            <div className="font-body text-sm font-semibold text-black">{variant.label}</div>
-                            <div className="font-body text-xs text-black/60">{variant.size} ({variant.inches}")</div>
+                            <div className="font-body text-sm font-semibold text-black">{variant.name}</div>
                           </div>
                           <div className="font-body text-sm font-bold text-black">₹{variant.price}</div>
                         </button>

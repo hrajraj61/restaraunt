@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 export default function LoginForm() {
-  const [form, setForm] = useState({ username: "shubham", password: "zaqplm@1029" });
+  const [form, setForm] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 

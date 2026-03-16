@@ -2,7 +2,7 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 const menuSeed = require("../../data.json");
-import { query, withTransaction } from "./db.js";
+import { query, withTransaction, safeUpdate } from "./db.js";
 import {
   createSessionValue,
   getSessionCookieName,
@@ -82,13 +82,11 @@ function normalizePricing(input = {}) {
   if (input.kind === "variant") {
     const variants = (input.variants || [])
       .map((variant, index) => ({
-        id: variant.id || `${slugify(variant.label || variant.size || `variant-${index + 1}`)}-${index + 1}`,
-        label: variant.label || variant.size || `Variant ${index + 1}`,
-        size: variant.size || null,
-        inches: variant.inches ?? null,
+        id: variant.id || `${slugify(variant.name || variant.label || `variant-${index + 1}`)}-${index + 1}`,
+        name: variant.name || variant.label || `Variant ${index + 1}`,
         price: Number(variant.price || 0)
       }))
-      .filter((variant) => variant.label && Number.isFinite(variant.price));
+      .filter((variant) => variant.name && Number.isFinite(variant.price));
 
     return {
       kind: variants.length ? "variant" : "fixed",
@@ -173,14 +171,31 @@ async function createSchema(db) {
     create table if not exists menu_item_variants (
       id text primary key,
       item_id text not null references menu_items(id) on delete cascade,
-      label text not null,
-      size text,
-      inches integer,
+      name text not null,
       price numeric(10,2) not null,
       sort_order integer not null default 0,
       created_at timestamptz not null default now(),
       updated_at timestamptz not null default now()
     );
+  `);
+
+  // Migration: rename label -> name and drop size/inches if upgrading from old schema
+  await db.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'menu_item_variants' AND column_name = 'label') THEN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'menu_item_variants' AND column_name = 'name') THEN
+          ALTER TABLE menu_item_variants RENAME COLUMN label TO name;
+        END IF;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'menu_item_variants' AND column_name = 'size') THEN
+        ALTER TABLE menu_item_variants DROP COLUMN size;
+      END IF;
+      IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'menu_item_variants' AND column_name = 'inches') THEN
+        ALTER TABLE menu_item_variants DROP COLUMN inches;
+      END IF;
+    END
+    $$;
   `);
 }
 
@@ -236,15 +251,13 @@ async function seedInitialData(db) {
       for (const [variantIndex, variant] of pricing.variants.entries()) {
         await db.query(
           `
-            insert into menu_item_variants (id, item_id, label, size, inches, price, sort_order)
-            values ($1, $2, $3, $4, $5, $6, $7)
+            insert into menu_item_variants (id, item_id, name, price, sort_order)
+            values ($1, $2, $3, $4, $5)
           `,
           [
             variant.id,
             item.id,
-            variant.label,
-            variant.size,
-            variant.inches,
+            variant.name,
             variant.price,
             variantIndex
           ]
@@ -300,9 +313,9 @@ export async function getMenuStore() {
     ),
     query(
       `
-        select id, item_id, label, size, inches, price, sort_order
+        select id, item_id, name, price, sort_order
         from menu_item_variants
-        order by sort_order asc, label asc
+        order by sort_order asc, name asc
       `
     )
   ]);
@@ -312,9 +325,7 @@ export async function getMenuStore() {
     const list = variantsByItem.get(variant.item_id) || [];
     list.push({
       id: variant.id,
-      label: variant.label,
-      size: variant.size,
-      inches: variant.inches,
+      name: variant.name,
       price: Number(variant.price)
     });
     variantsByItem.set(variant.item_id, list);
@@ -441,9 +452,9 @@ export async function getDashboardSnapshot() {
     ),
     query(
       `
-        select id, item_id, label, size, inches, price, sort_order
+        select id, item_id, name, price, sort_order
         from menu_item_variants
-        order by item_id asc, sort_order asc, label asc
+        order by item_id asc, sort_order asc, name asc
       `
     )
   ]);
@@ -453,9 +464,7 @@ export async function getDashboardSnapshot() {
     const list = variantsByItem.get(variant.item_id) || [];
     list.push({
       id: variant.id,
-      label: variant.label,
-      size: variant.size,
-      inches: variant.inches,
+      name: variant.name,
       price: Number(variant.price)
     });
     variantsByItem.set(variant.item_id, list);
@@ -576,15 +585,13 @@ export async function createItem(input) {
     for (const [index, variant] of pricing.variants.entries()) {
       await db.query(
         `
-          insert into menu_item_variants (id, item_id, label, size, inches, price, sort_order, updated_at)
-          values ($1, $2, $3, $4, $5, $6, $7, now())
+          insert into menu_item_variants (id, item_id, name, price, sort_order, updated_at)
+          values ($1, $2, $3, $4, $5, now())
         `,
         [
           variant.id || `${id}-variant-${index + 1}`,
           id,
-          variant.label,
-          variant.size,
-          variant.inches,
+          variant.name,
           variant.price,
           index
         ]
@@ -630,15 +637,13 @@ export async function updateItem(id, input) {
     for (const [index, variant] of pricing.variants.entries()) {
       await db.query(
         `
-          insert into menu_item_variants (id, item_id, label, size, inches, price, sort_order, updated_at)
-          values ($1, $2, $3, $4, $5, $6, $7, now())
+          insert into menu_item_variants (id, item_id, name, price, sort_order, updated_at)
+          values ($1, $2, $3, $4, $5, now())
         `,
         [
           variant.id || `${id}-variant-${index + 1}`,
           id,
-          variant.label,
-          variant.size,
-          variant.inches,
+          variant.name,
           variant.price,
           index
         ]
