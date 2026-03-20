@@ -1,19 +1,31 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Capacitor } from "@capacitor/core";
 import LoginForm from "../../../components/admin/LoginForm";
 
-export const dynamic = "force-dynamic";
+export default function DashboardLoginPage() {
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
 
-export default async function DashboardLoginPage() {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
-  const response = await fetch(`${baseUrl}/api/admin/session`, {
-    headers: { cookie: headers().get("cookie") ?? "" },
-    cache: "no-store"
-  });
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+        const res = await fetch(`${API_BASE}/api/admin/session`);
+        if (res.ok) {
+          router.push("/dashboard");
+        } else {
+          setChecking(false);
+        }
+      } catch {
+        setChecking(false);
+      }
+    }
+    checkSession();
+  }, [router]);
 
-  if (response.ok) {
-    redirect("/dashboard");
-  }
-
+  if (checking) return <div className="min-h-screen bg-stone-950"></div>;
   return <LoginForm />;
 }

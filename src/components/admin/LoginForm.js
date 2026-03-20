@@ -1,4 +1,5 @@
 "use client";
+import { Capacitor } from "@capacitor/core";
 
 import { useState } from "react";
 
@@ -13,7 +14,8 @@ export default function LoginForm() {
     setError("");
 
     try {
-      const response = await fetch("/api/admin/login", {
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+      const response = await fetch(`${API_BASE}/api/admin/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)

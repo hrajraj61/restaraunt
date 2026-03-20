@@ -3,6 +3,11 @@ const backendUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:30
 
 const nextConfig = {
   reactStrictMode: true,
+  // This tells Next.js to do a completely offline Static Export
+  output: "export",
+  
+  // ⚠️ Rewrites are strictly strictly forbidden by Next.js when output="export"
+  /*
   async rewrites() {
     return [
       {
@@ -11,6 +16,7 @@ const nextConfig = {
       }
     ];
   }
+  */
 };
 
 export default nextConfig;

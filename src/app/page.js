@@ -1,6 +1,23 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
 
 export default function HomePage() {
+  // Redirect to Dashboard if this APK is compiled for staff
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      import('@capacitor/app').then(({ App }) => {
+        App.getInfo().then(info => {
+          if (info.id === "com.dubeys.dashboard") {
+            window.location.replace("/dashboard");
+          }
+        }).catch(err => console.error("Error reading App ID:", err));
+      });
+    }
+  }, []);
+
   return (
     <main className="min-h-screen overflow-hidden bg-stone-950 text-stone-100">
       <section className="relative isolate">

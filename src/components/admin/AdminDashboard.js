@@ -1,5 +1,6 @@
 "use client";
 
+import { Capacitor } from "@capacitor/core";
 import { useState, useCallback } from "react";
 import {
   LayoutDashboard,
@@ -788,7 +789,8 @@ export default function AdminDashboard({ initialData, sessionUser }) {
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   async function refreshData(successMessage) {
-    const response = await fetch("/api/admin/bootstrap", { cache: "no-store" });
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+    const response = await fetch(`${API_BASE}/api/admin/bootstrap`, { cache: "no-store" });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || "Unable to refresh dashboard");
     setData(payload.data);
@@ -798,7 +800,9 @@ export default function AdminDashboard({ initialData, sessionUser }) {
   async function submitRequest(url, options, successMessage) {
     setLoading(true); setError(""); setMessage("");
     try {
-      const response = await fetch(url, options);
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+      const fullUrl = url.startsWith('/') ? `${API_BASE}${url}` : url;
+      const response = await fetch(fullUrl, options);
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "Action failed");
       await refreshData(successMessage);
@@ -808,7 +812,8 @@ export default function AdminDashboard({ initialData, sessionUser }) {
 
   async function handleLogout() {
     setLoading(true);
-    await fetch("/api/admin/logout", { method: "POST" });
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+    await fetch(`${API_BASE}/api/admin/logout`, { method: "POST" });
     window.location.href = "/dashboard/login";
   }
 

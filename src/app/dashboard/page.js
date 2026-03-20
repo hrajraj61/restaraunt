@@ -1,49 +1,41 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Capacitor } from "@capacitor/core";
 import AdminDashboard from "../../components/admin/AdminDashboard";
 
-export const dynamic = "force-dynamic";
+export default function DashboardPage() {
+  const router = useRouter();
+  const [sessionUser, setSessionUser] = useState(null);
+  const [initialData, setInitialData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-async function fetchSession(cookieHeader) {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
-  const response = await fetch(`${baseUrl}/api/admin/session`, {
-    headers: { cookie: cookieHeader || "" },
-    cache: "no-store"
-  });
+  useEffect(() => {
+    async function load() {
+      try {
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+        const sessionRes = await fetch(`${API_BASE}/api/admin/session`);
+        if (!sessionRes.ok) throw new Error("No session");
+        const sessionData = await sessionRes.json();
+        
+        const bootstrapRes = await fetch(`${API_BASE}/api/admin/bootstrap`);
+        if (!bootstrapRes.ok) throw new Error("No bootstrap");
+        const bootstrapData = await bootstrapRes.json();
+        
+        setSessionUser(sessionData.user);
+        setInitialData(bootstrapData.data);
+      } catch (err) {
+        router.push("/dashboard/login");
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [router]);
 
-  if (!response.ok) {
-    return null;
-  }
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#F8F7F4] text-stone-400 font-bold text-xs uppercase tracking-widest">Loading...</div>;
+  if (!sessionUser || !initialData) return null;
 
-  return response.json();
-}
-
-async function fetchBootstrap(cookieHeader) {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
-  const response = await fetch(`${baseUrl}/api/admin/bootstrap`, {
-    headers: { cookie: cookieHeader || "" },
-    cache: "no-store"
-  });
-
-  if (!response.ok) {
-    return null;
-  }
-
-  const payload = await response.json();
-  return payload.data;
-}
-
-export default async function DashboardPage() {
-  const cookieHeader = headers().get("cookie") ?? "";
-  const sessionPayload = await fetchSession(cookieHeader);
-  if (!sessionPayload?.user) {
-    redirect("/dashboard/login");
-  }
-
-  const initialData = await fetchBootstrap(cookieHeader);
-  if (!initialData) {
-    redirect("/dashboard/login");
-  }
-
-  return <AdminDashboard initialData={initialData} sessionUser={sessionPayload.user} />;
+  return <AdminDashboard initialData={initialData} sessionUser={sessionUser} />;
 }

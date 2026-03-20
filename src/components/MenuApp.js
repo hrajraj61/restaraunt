@@ -1,5 +1,8 @@
 "use client";
 
+import { Capacitor } from "@capacitor/core";
+import { Geolocation } from "@capacitor/geolocation";
+
 import React, {
   useCallback,
   useDeferredValue,
@@ -232,7 +235,8 @@ export default function MenuApp() {
         setLoading(true);
         setError("");
 
-        const response = await fetch("/api/menu", { cache: "no-store" });
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+        const response = await fetch(`${API_BASE}/api/menu`, { cache: "no-store" });
         if (!response.ok) {
           throw new Error("Failed to fetch menu");
         }
@@ -258,6 +262,31 @@ export default function MenuApp() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+
+  // Request location permission immediately on app load
+  useEffect(() => {
+    async function requestLocationPermission() {
+      try {
+        if (Capacitor.isNativePlatform()) {
+          const permissions = await Geolocation.checkPermissions();
+          if (permissions.location !== "granted") {
+            await Geolocation.requestPermissions();
+          }
+        } else if (navigator.geolocation) {
+          // On web, silently attempt to get permission if not already granted/denied.
+          // Note: Browsers may block this if not triggered by a user gesture.
+          navigator.geolocation.getCurrentPosition(
+            () => { /* Access granted */ },
+            () => { /* Access denied or ignored */ }
+          );
+        }
+      } catch (err) {
+        console.error("Failed to request location permission on load:", err);
+      }
+    }
+    requestLocationPermission();
   }, []);
 
   // PWA Install prompt handling
@@ -463,7 +492,8 @@ export default function MenuApp() {
     setCouponError("");
     setCouponResult(null);
     try {
-      const res = await fetch("/api/coupon", {
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+      const res = await fetch(`${API_BASE}/api/coupon`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code }),
@@ -532,7 +562,7 @@ export default function MenuApp() {
     openWhatsApp(locationMessage);
   }, [cart, deliveryLocation, includeDeliveryLocation, selectedDishes, totalCartItems, totalCartPrice, discountAmount, finalPrice, couponResult, menu]);
 
-  const toggleDeliveryLocation = useCallback(() => {
+  const toggleDeliveryLocation = useCallback(async () => {
     if (includeDeliveryLocation) {
       setIncludeDeliveryLocation(false);
       setDeliveryLocation(null);
@@ -540,34 +570,66 @@ export default function MenuApp() {
       return;
     }
 
-    if (!navigator.geolocation) {
-      window.alert("Location access is not supported on this device.");
-      setIncludeDeliveryLocation(false);
-      setDeliveryLocation(null);
-      return;
-    }
-
     setIncludeDeliveryLocation(true);
     setIsFetchingDeliveryLocation(true);
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const permissions = await Geolocation.checkPermissions();
+        if (permissions.location !== "granted") {
+          const request = await Geolocation.requestPermissions();
+          if (request.location !== "granted") {
+            window.alert("Location permission denied.");
+            setIncludeDeliveryLocation(false);
+            setDeliveryLocation(null);
+            setIsFetchingDeliveryLocation(false);
+            return;
+          }
+        }
+        
+        const position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        });
+        
         const { latitude, longitude } = position.coords;
         setDeliveryLocation({ latitude, longitude });
         setIsFetchingDeliveryLocation(false);
-      },
-      () => {
-        window.alert("Couldn't get your current location.");
-        setIncludeDeliveryLocation(false);
-        setDeliveryLocation(null);
-        setIsFetchingDeliveryLocation(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
+      } else {
+        if (!navigator.geolocation) {
+          window.alert("Location access is not supported on this device.");
+          setIncludeDeliveryLocation(false);
+          setDeliveryLocation(null);
+          setIsFetchingDeliveryLocation(false);
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            setDeliveryLocation({ latitude, longitude });
+            setIsFetchingDeliveryLocation(false);
+          },
+          () => {
+            window.alert("Couldn't get your current location.");
+            setIncludeDeliveryLocation(false);
+            setDeliveryLocation(null);
+            setIsFetchingDeliveryLocation(false);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+          }
+        );
       }
-    );
+    } catch (error) {
+      window.alert("Couldn't get your current location.");
+      setIncludeDeliveryLocation(false);
+      setDeliveryLocation(null);
+      setIsFetchingDeliveryLocation(false);
+    }
   }, [includeDeliveryLocation]);
 
   const closeDeliveryConfirmModal = useCallback(() => {
@@ -1036,8 +1098,8 @@ export default function MenuApp() {
                         }`}
                       >
                         <span
-                          className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                            includeDeliveryLocation ? "translate-x-6" : "translate-x-1"
+                          className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
+                            includeDeliveryLocation ? "translate-x-5" : "translate-x-0"
                           }`}
                         />
                       </button>
