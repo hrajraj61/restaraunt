@@ -221,6 +221,7 @@ export default function MenuApp() {
   // PWA Install functionality
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
+  const [showAutoInstallBanner, setShowAutoInstallBanner] = useState(false);
   const deferredSearch = useDeferredValue(searchQuery.trim().toLowerCase());
 
   useEffect(() => {
@@ -265,6 +266,9 @@ export default function MenuApp() {
       e.preventDefault();
       setDeferredPrompt(e);
       setShowInstallButton(true);
+      if (!localStorage.getItem('dismissedInstallBanner')) {
+        setShowAutoInstallBanner(true);
+      }
     };
 
     const handleAppInstalled = () => {
@@ -891,6 +895,48 @@ export default function MenuApp() {
           </AnimatePresence>
 
           <AnimatePresence>
+            {showAutoInstallBanner ? (
+              <div className="absolute inset-x-0 bottom-0 z-[200] p-3 sm:p-4">
+                <motion.div
+                  initial={{ y: 100, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 200, opacity: 0 }}
+                  className="rounded-xl border border-white/10 bg-amber-500 shadow-2xl overflow-hidden text-black shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+                >
+                  <div className="flex items-start gap-3 p-4">
+                    <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded shadow-md object-contain bg-white" />
+                    <div className="flex-1">
+                      <h3 className="font-display text-base font-bold text-black">Add to Home Screen</h3>
+                      <p className="font-body text-xs text-black/70 mt-1 leading-snug">Install Dubey's Dhaba app for faster ordering and a better experience!</p>
+                    </div>
+                  </div>
+                  <div className="flex bg-black/5 mt-1 border-t border-black/10">
+                    <button
+                      onClick={() => {
+                         localStorage.setItem('dismissedInstallBanner', 'true');
+                         setShowAutoInstallBanner(false);
+                      }}
+                      className="flex-1 py-3 font-body text-xs font-bold uppercase tracking-wider text-black/70 hover:bg-black/5 transition-colors"
+                    >
+                      Not Now
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowAutoInstallBanner(false);
+                        localStorage.setItem('dismissedInstallBanner', 'true');
+                        handleInstallApp();
+                      }}
+                      className="flex-1 py-3 font-body text-[11px] font-bold uppercase tracking-wider bg-black text-amber-500 hover:bg-black/90 transition-colors"
+                    >
+                      Install Now
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            ) : null}
+          </AnimatePresence>
+
+          <AnimatePresence>
             {showDeliveryConfirmModal ? (
               <div className="absolute inset-0 z-[170] flex items-end justify-center p-3 sm:p-4 lg:items-center lg:p-8">
                 <motion.div
@@ -969,7 +1015,7 @@ export default function MenuApp() {
                       {couponError && <p className="mt-1.5 font-body text-[11px] text-red-500">{couponError}</p>}
                     </div>
 
-                    <label className="flex items-center justify-between rounded-lg border border-black/10 bg-white px-3 py-3 text-black">
+                    <div className="flex items-center justify-between rounded-lg border border-black/10 bg-white px-3 py-3 text-black">
                       <div>
                         <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-black/80">
                           Use Current Location
@@ -995,7 +1041,7 @@ export default function MenuApp() {
                           }`}
                         />
                       </button>
-                    </label>
+                    </div>
 
                     <div className="flex gap-2">
                       <button
