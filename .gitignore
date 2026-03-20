@@ -1,2 +1,5 @@
 node_modules/
 .next/
+backend/node_modules/
+backend/dist/
+android/

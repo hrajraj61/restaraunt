@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const menuSeed = require("../../data.json");
+const menuSeed = require("../../../data.json");
 import { query, withTransaction, safeUpdate } from "./db.js";
 import {
   createSessionValue,
